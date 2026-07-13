@@ -253,6 +253,22 @@
     .docsify-pagination-container {
       margin-top: 3em;
     }
+
+    /* Mermaid 图表 */
+    .markdown-section .mermaid {
+      text-align: center;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 1.5em 1em;
+      margin: 1.5em 0;
+      overflow-x: auto;
+    }
+
+    .markdown-section .mermaid svg {
+      max-width: 100%;
+      height: auto;
+    }
   </style>
 </head>
 
@@ -285,12 +301,17 @@
       themeColor: "#2c7be5",
     };
   </script>
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs";
+    mermaid.initialize({ startOnLoad: true, theme: "base", themeVariables: { primaryColor: "#2c7be5", primaryTextColor: "#fff", primaryBorderColor: "none", lineColor: "#94a3b8", fontSize: "14px" } });
+  </script>
   <script src="//cdn.jsdelivr.net/npm/docsify/lib/docsify.min.js"></script>
   <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
   <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/emoji.min.js"></script>
   <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/copy-code.min.js"></script>
   <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/zoom-image.min.js"></script>
   <script src="//cdn.jsdelivr.net/npm/docsify-pagination/dist/docsify-pagination.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/docsify-mermaid/dist/docsify-mermaid.min.js"></script>
 </body>
 
 </html>

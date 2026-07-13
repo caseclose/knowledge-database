@@ -6,6 +6,36 @@
 
 ---
 
+## 知识库总览
+
+```mermaid
+graph LR
+    KB["📚 knowledge-database"] --> Linux["Linux"]
+    KB --> Agent["Agent"]
+    KB --> AI["AI"]
+
+    Linux --> GPU["gpu"]
+    GPU --> K1["fuser vs pkill 释放显存"]
+
+    Agent --> OC["opencode"]
+    OC --> K2["输出截断与思考超时"]
+
+    AI --> PE["prompt-engineering"]
+    PE --> K3["结构化 Image Captioning"]
+
+    classDef root fill:#2c7be5,color:#fff,stroke:none
+    classDef category fill:#eef4ff,color:#2c7be5,stroke:#2c7be5,stroke-width:2px
+    classDef sub fill:#f8fafc,color:#4a5568,stroke:#cbd5e0,stroke-width:1px
+    classDef knowledge fill:#fff,color:#2c3e50,stroke:#e2e8f0,stroke-width:1px
+
+    class KB root
+    class Linux,Agent,AI category
+    class GPU,OC,PE sub
+    class K1,K2,K3 knowledge
+```
+
+---
+
 ## ⚠️ 必读规则
 
 **无论是人类还是 AI agent（大模型），在写入或修改本知识库的任何内容之前，必须先完整阅读本 README。**
@@ -24,8 +54,12 @@ knowledge-database/
 ├── linux/
 │   └── gpu/
 │       └── fuser-vs-pkill-release-gpu-memory.md
-├── python/
-├── git/
+├── agent/
+│   └── opencode/
+│       └── output-truncation-and-thinking-timeout.md
+├── ai/
+│   └── prompt-engineering/
+│       └── structured-image-captioning.md
 └── ...
 ```
 
