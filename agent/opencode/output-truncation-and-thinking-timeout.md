@@ -19,13 +19,13 @@
 代码吐到一半停下时，**不要只回 "继续"**，用精准英文指令续写：
 
 ```
-Continue from where you were cut off, do not repeat the previous code.
+Continue from where you were cut off (including your thinking process), do not repeat the previous code.
 ```
 
 跨文件时用 `@` 锚定：
 
 ```
-Continue from where you were cut off in @filename, do not repeat the previous code.
+Continue from where you were cut off (including your thinking process) in @filename, do not repeat the previous code.
 ```
 
 ### 2. 崩溃后断点续传（CLI 模式）
