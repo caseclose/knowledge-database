@@ -184,7 +184,7 @@ function kbSearchPlugin(hook) {
   }
 
   function syncModeButtons() {
-    document.querySelectorAll(".kb-mode-btn").forEach(function (btn) {
+    document.querySelectorAll(".kb-mode-btn, .kb-cover-mode-btn").forEach(function (btn) {
       btn.classList.toggle("active", btn.getAttribute("data-mode") === currentMode);
     });
   }
