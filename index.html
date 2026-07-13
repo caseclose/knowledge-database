@@ -79,12 +79,24 @@
       max-width: 900px;
     }
 
-    .markdown-section h1,
-    .markdown-section h2,
-    .markdown-section h3,
-    .markdown-section h4 {
-      color: var(--text-heading) !important;
-      font-weight: 700;
+    html[data-theme="dark"] .markdown-section h1,
+    html[data-theme="dark"] .markdown-section h2,
+    html[data-theme="dark"] .markdown-section h3,
+    html[data-theme="dark"] .markdown-section h4,
+    html[data-theme="dark"] .markdown-section strong,
+    html[data-theme="dark"] .markdown-section b {
+      color: #f1f5f9 !important;
+      font-weight: 700 !important;
+    }
+
+    html[data-theme="light"] .markdown-section h1,
+    html[data-theme="light"] .markdown-section h2,
+    html[data-theme="light"] .markdown-section h3,
+    html[data-theme="light"] .markdown-section h4,
+    html[data-theme="light"] .markdown-section strong,
+    html[data-theme="light"] .markdown-section b {
+      color: #1a202c !important;
+      font-weight: 700 !important;
     }
 
     .markdown-section a {
@@ -93,12 +105,6 @@
 
     .markdown-section p {
       color: var(--text);
-    }
-
-    .markdown-section strong,
-    .markdown-section b {
-      color: var(--text-heading);
-      font-weight: 700;
     }
 
     /* 行内代码 */
@@ -664,20 +670,24 @@
           function applyHeadingColors() {
             var theme = document.documentElement.getAttribute("data-theme");
             var headingColor = theme === "dark" ? "#f1f5f9" : "#1a202c";
-            document.querySelectorAll(
+            var els = document.querySelectorAll(
               ".markdown-section h1, .markdown-section h2, .markdown-section h3, .markdown-section h4, .markdown-section strong, .markdown-section b"
-            ).forEach(function (el) {
-              el.style.setProperty("color", headingColor, "important");
-              el.style.setProperty("font-weight", "700", "important");
-            });
+            );
+            for (var i = 0; i < els.length; i++) {
+              els[i].style.cssText +=
+                ";color:" + headingColor + " !important;font-weight:700 !important";
+            }
           }
-          hook.doneEach(function () { applyHeadingColors(); });
+          hook.doneEach(function () {
+            setTimeout(applyHeadingColors, 100);
+          });
           hook.mounted(function () {
-            new MutationObserver(function () { applyHeadingColors(); })
-              .observe(document.documentElement, {
-                attributes: true,
-                attributeFilter: ["data-theme"],
-              });
+            new MutationObserver(function () {
+              setTimeout(applyHeadingColors, 50);
+            }).observe(document.documentElement, {
+              attributes: true,
+              attributeFilter: ["data-theme"],
+            });
           });
         },
         function (hook) {
