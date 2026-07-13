@@ -2,5 +2,6 @@
 - Linux
   - GPU
     - [fuser vs pkill 释放显存](linux/gpu/fuser-vs-pkill-release-gpu-memory.md)
-- OpenCode
-  - [输出截断与思考超时](opencode/output-truncation-and-thinking-timeout.md)
+- Agent
+  - OpenCode
+    - [输出截断与思考超时](agent/opencode/output-truncation-and-thinking-timeout.md)
