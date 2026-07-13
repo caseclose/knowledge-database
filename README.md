@@ -26,13 +26,19 @@ graph LR
     classDef root fill:#2c7be5,color:#fff,stroke:none
     classDef category fill:#eef4ff,color:#2c7be5,stroke:#2c7be5,stroke-width:2px
     classDef sub fill:#f8fafc,color:#4a5568,stroke:#cbd5e0,stroke-width:1px
-    classDef knowledge fill:#fff,color:#2c3e50,stroke:#e2e8f0,stroke-width:1px
+    classDef knowledge fill:#fff,color:#2c7be5,stroke:#2c7be5,stroke-width:2px
 
     class KB root
     class Linux,Agent,AI category
     class GPU,OC,PE sub
     class K1,K2,K3 knowledge
+
+    click K1 href "#/linux/gpu/fuser-vs-pkill-release-gpu-memory"
+    click K2 href "#/agent/opencode/output-truncation-and-thinking-timeout"
+    click K3 href "#/ai/prompt-engineering/structured-image-captioning"
 ```
+
+> 点击图中蓝色边框的知识条目可直接跳转阅读。
 
 ---
 
