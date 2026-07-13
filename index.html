@@ -5,7 +5,7 @@
   <meta charset="UTF-8" />
   <title>knowledge-database</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify/lib/themes/vue.css" />
+  <link rel="stylesheet" href="vue.css" />
   <script>
     (function () {
       var saved = localStorage.getItem("kb-theme");
@@ -16,6 +16,7 @@
   </script>
   <style>
     :root {
+      --theme-color: #2c7be5;
       --accent: #2c7be5;
       --bg: #ffffff;
       --bg-secondary: #f8fafc;
@@ -40,6 +41,7 @@
     }
 
     [data-theme="dark"] {
+      --theme-color: #60a5fa;
       --accent: #60a5fa;
       --bg: #0f172a;
       --bg-secondary: #1e293b;
@@ -77,26 +79,6 @@
     .markdown-section {
       color: var(--text);
       max-width: 900px;
-    }
-
-    html[data-theme="dark"] .markdown-section h1,
-    html[data-theme="dark"] .markdown-section h2,
-    html[data-theme="dark"] .markdown-section h3,
-    html[data-theme="dark"] .markdown-section h4,
-    html[data-theme="dark"] .markdown-section strong,
-    html[data-theme="dark"] .markdown-section b {
-      color: #f1f5f9 !important;
-      font-weight: 700 !important;
-    }
-
-    html[data-theme="light"] .markdown-section h1,
-    html[data-theme="light"] .markdown-section h2,
-    html[data-theme="light"] .markdown-section h3,
-    html[data-theme="light"] .markdown-section h4,
-    html[data-theme="light"] .markdown-section strong,
-    html[data-theme="light"] .markdown-section b {
-      color: #1a202c !important;
-      font-weight: 700 !important;
     }
 
     .markdown-section a {
@@ -664,25 +646,6 @@
             if (window.mermaid) {
               window.mermaid.init(undefined, ".mermaid:not([data-processed])");
             }
-          });
-        },
-        function (hook) {
-          function injectHeadingStyle() {
-            var old = document.getElementById("kb-heading-fix");
-            if (old) old.remove();
-            var theme = document.documentElement.getAttribute("data-theme");
-            var c = theme === "dark" ? "#f1f5f9" : "#1a202c";
-            var s = document.createElement("style");
-            s.id = "kb-heading-fix";
-            s.textContent =
-              ".markdown-section h1,.markdown-section h2,.markdown-section h3,.markdown-section h4,.markdown-section strong,.markdown-section b{color:" +
-              c + " !important;font-weight:700 !important}";
-            document.head.appendChild(s);
-          }
-          hook.doneEach(function () { setTimeout(injectHeadingStyle, 150); });
-          hook.mounted(function () {
-            new MutationObserver(function () { setTimeout(injectHeadingStyle, 50); })
-              .observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
           });
         },
         function (hook) {
