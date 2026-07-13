@@ -667,27 +667,22 @@
           });
         },
         function (hook) {
-          function applyHeadingColors() {
+          function injectHeadingStyle() {
+            var old = document.getElementById("kb-heading-fix");
+            if (old) old.remove();
             var theme = document.documentElement.getAttribute("data-theme");
-            var headingColor = theme === "dark" ? "#f1f5f9" : "#1a202c";
-            var els = document.querySelectorAll(
-              ".markdown-section h1, .markdown-section h2, .markdown-section h3, .markdown-section h4, .markdown-section strong, .markdown-section b"
-            );
-            for (var i = 0; i < els.length; i++) {
-              els[i].style.cssText +=
-                ";color:" + headingColor + " !important;font-weight:700 !important";
-            }
+            var c = theme === "dark" ? "#f1f5f9" : "#1a202c";
+            var s = document.createElement("style");
+            s.id = "kb-heading-fix";
+            s.textContent =
+              ".markdown-section h1,.markdown-section h2,.markdown-section h3,.markdown-section h4,.markdown-section strong,.markdown-section b{color:" +
+              c + " !important;font-weight:700 !important}";
+            document.head.appendChild(s);
           }
-          hook.doneEach(function () {
-            setTimeout(applyHeadingColors, 100);
-          });
+          hook.doneEach(function () { setTimeout(injectHeadingStyle, 150); });
           hook.mounted(function () {
-            new MutationObserver(function () {
-              setTimeout(applyHeadingColors, 50);
-            }).observe(document.documentElement, {
-              attributes: true,
-              attributeFilter: ["data-theme"],
-            });
+            new MutationObserver(function () { setTimeout(injectHeadingStyle, 50); })
+              .observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
           });
         },
         function (hook) {
