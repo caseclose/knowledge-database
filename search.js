@@ -84,8 +84,8 @@ function kbSearchPlugin(hook) {
     return highlight(snippet, query);
   }
 
-  function doSearch(query) {
-    var container = document.querySelector(".kb-search-results");
+  function doSearch(query, container) {
+    if (!container) container = document.querySelector(".kb-search-results");
     if (!container) return;
     if (!query.trim()) {
       container.innerHTML = '<div class="kb-search-hint">输入关键词搜索知识</div>';
@@ -176,16 +176,61 @@ function kbSearchPlugin(hook) {
 
     modeBtns.forEach(function (btn) {
       btn.addEventListener("click", function () {
-        modeBtns.forEach(function (b) { b.classList.remove("active"); });
-        this.classList.add("active");
         currentMode = this.getAttribute("data-mode");
+        syncModeButtons();
         if (input.value.trim()) doSearch(input.value);
+      });
+    });
+  }
+
+  function syncModeButtons() {
+    document.querySelectorAll(".kb-mode-btn").forEach(function (btn) {
+      btn.classList.toggle("active", btn.getAttribute("data-mode") === currentMode);
+    });
+  }
+
+  function renderCoverSearch() {
+    var cover = document.querySelector(".cover.show");
+    if (!cover) return;
+    var coverMain = cover.querySelector(".cover-main");
+    if (!coverMain || cover.querySelector(".kb-cover-search")) return;
+    var div = document.createElement("div");
+    div.className = "kb-cover-search";
+    div.innerHTML =
+      '<input type="text" class="kb-cover-input" placeholder="搜索知识..." autocomplete="off" />' +
+      '<div class="kb-cover-modes">' +
+      '<button class="kb-cover-mode-btn" data-mode="title">标题</button>' +
+      '<button class="kb-cover-mode-btn active" data-mode="fulltext">全文</button>' +
+      '<button class="kb-cover-mode-btn" data-mode="fuzzy">模糊</button>' +
+      '<button class="kb-cover-mode-btn" data-mode="exact">精确</button>' +
+      "</div>" +
+      '<div class="kb-cover-results"></div>';
+    coverMain.appendChild(div);
+
+    var input = div.querySelector(".kb-cover-input");
+    var modeBtns = div.querySelectorAll(".kb-cover-mode-btn");
+    var results = div.querySelector(".kb-cover-results");
+
+    input.addEventListener("input", function () {
+      savedQuery = this.value;
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(function () {
+        buildIndex().then(function () { doSearch(savedQuery, results); });
+      }, 200);
+    });
+
+    modeBtns.forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        currentMode = this.getAttribute("data-mode");
+        syncModeButtons();
+        if (input.value.trim()) doSearch(input.value, results);
       });
     });
   }
 
   hook.doneEach(function () {
     renderSearchUI();
+    renderCoverSearch();
     buildIndex();
   });
 }
