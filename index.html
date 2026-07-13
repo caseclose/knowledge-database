@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>knowledge-database</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify-themeable/dist/css/theme-simple.css" />
+  <style>
+    :root {
+      --base-font-size: 16px;
+      --theme-color: #2c7be5;
+      --heading-color: #1a202c;
+      --heading-font-weight: 700;
+      --sidebar-name-color: #2c7be5;
+      --sidebar-name-font-weight: 700;
+      --sidebar-nav-link-color: #4a5568;
+      --sidebar-nav-link-color--active: #2c7be5;
+      --sidebar-nav-link-border-color--active: #2c7be5;
+      --sidebar-nav-link-font-weight--active: 600;
+      --search-input-border-color: #e2e8f0;
+      --search-input-border-color--focus: #2c7be5;
+      --code-inline-background: #f1f5f9;
+      --code-inline-color: #e53e3e;
+      --code-theme-background: #1e293b;
+      --code-theme-color: #e2e8f0;
+      --blockquote-border-color: #2c7be5;
+      --blockquote-background: #f0f7ff;
+      --table-border-color: #e2e8f0;
+      --table-head-background: #f8fafc;
+      --cover-background-color: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #2c7be5 100%);
+      --cover-color: #ffffff;
+      --cover-heading-color: #ffffff;
+      --cover-link-border-radius: 30px;
+      --cover-link-padding: 8px 28px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+        "Microsoft YaHei", "Helvetica Neue", sans-serif;
+    }
+
+    .app-name-link img {
+      display: none;
+    }
+
+    .sidebar {
+      box-shadow: 1px 0 0 #edf2f7;
+    }
+
+    code {
+      border-radius: 4px;
+    }
+
+    pre {
+      border-radius: 8px;
+    }
+
+    table tr:nth-child(even) {
+      background: #f8fafc;
+    }
+
+    .cover-main {
+      text-align: center;
+    }
+
+    .cover-main blockquote {
+      border: none;
+      background: transparent;
+      color: rgba(255, 255, 255, 0.85);
+    }
+
+    .cover-main li {
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    .anchor {
+      text-decoration: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app">加载中...</div>
+  <script>
+    window.$docsify = {
+      name: "knowledge-database",
+      repo: "caseclose/knowledge-database",
+      coverpage: true,
+      loadSidebar: true,
+      subMaxLevel: 3,
+      auto2top: true,
+      search: {
+        placeholder: "搜索知识",
+        noData: "没有找到结果",
+        depth: 3,
+        hideOtherSidebarContent: false,
+      },
+      copyCode: {
+        buttonText: "复制",
+        errorText: "复制失败",
+        successText: "已复制",
+      },
+      pagination: {
+        previousText: "上一篇",
+        nextText: "下一篇",
+        crossChapter: true,
+      },
+      themeColor: "#2c7be5",
+    };
+  </script>
+  <script src="//cdn.jsdelivr.net/npm/docsify/lib/docsify.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/emoji.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/copy-code.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/zoom-image.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/docsify-pagination/dist/docsify-pagination.min.js"></script>
+</body>
+
+</html>
