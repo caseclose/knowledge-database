@@ -13,27 +13,34 @@ function kbSearchPlugin(hook) {
     var seen = {};
     links.forEach(function (link) {
       var href = link.getAttribute("href");
-      if (href && href.endsWith(".md") && !href.startsWith("http") && !seen[href]) {
-        seen[href] = true;
-        promises.push(
-          fetch(href)
-            .then(function (r) { return r.text(); })
-            .then(function (content) {
-              var titleMatch = content.match(/^#\s+(.+)$/m);
-              var title = titleMatch
-                ? titleMatch[1].replace(/[*`]/g, "").trim()
-                : link.textContent.trim();
-              searchIndex.push({
-                title: title,
-                path: href,
-                content: content,
-                contentLower: content.toLowerCase(),
-                breadcrumb: href.replace(/\.md$/, "").replace(/\//g, " / "),
-              });
-            })
-            .catch(function () {})
-        );
+      if (!href || href.startsWith("http") || seen[href]) return;
+      var filePath;
+      if (href.startsWith("#/")) {
+        filePath = href.substring(2) + ".md";
+      } else if (href.endsWith(".md")) {
+        filePath = href;
+      } else {
+        return;
       }
+      seen[href] = true;
+      promises.push(
+        fetch(filePath)
+          .then(function (r) { return r.text(); })
+          .then(function (content) {
+            var titleMatch = content.match(/^#\s+(.+)$/m);
+            var title = titleMatch
+              ? titleMatch[1].replace(/[*`]/g, "").trim()
+              : link.textContent.trim();
+            searchIndex.push({
+              title: title,
+              path: filePath,
+              content: content,
+              contentLower: content.toLowerCase(),
+              breadcrumb: filePath.replace(/\.md$/, "").replace(/\//g, " / "),
+            });
+          })
+          .catch(function () {})
+      );
     });
     return Promise.all(promises).then(function () {
       if (window.Fuse) {
