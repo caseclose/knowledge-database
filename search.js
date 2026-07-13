@@ -2,12 +2,14 @@ function kbSearchPlugin(hook) {
   var searchIndex = [];
   var fuse = null;
   var indexed = false;
+  var indexPromise = null;
   var currentMode = "fulltext";
   var savedQuery = "";
   var debounceTimer = null;
 
   function buildIndex() {
     if (indexed) return Promise.resolve();
+    if (indexPromise) return indexPromise;
     var links = document.querySelectorAll(".sidebar-nav a[href]");
     var promises = [];
     var seen = {};
@@ -42,7 +44,7 @@ function kbSearchPlugin(hook) {
           .catch(function () {})
       );
     });
-    return Promise.all(promises).then(function () {
+    indexPromise = Promise.all(promises).then(function () {
       if (window.Fuse) {
         fuse = new Fuse(searchIndex, {
           keys: ["title", "content"],
@@ -54,6 +56,7 @@ function kbSearchPlugin(hook) {
       }
       indexed = true;
     });
+    return indexPromise;
   }
 
   function escapeHtml(t) {
@@ -206,6 +209,7 @@ function kbSearchPlugin(hook) {
       "</div>" +
       '<div class="kb-cover-results"></div>';
     coverMain.appendChild(div);
+    syncModeButtons();
 
     var input = div.querySelector(".kb-cover-input");
     var modeBtns = div.querySelectorAll(".kb-cover-mode-btn");
