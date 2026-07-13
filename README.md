@@ -2,6 +2,8 @@
 
 个人知识库。沉淀技术笔记、问题排查经验、命令技巧等。
 
+**在线阅读：** https://caseclose.github.io/knowledge-database/
+
 ---
 
 ## ⚠️ 必读规则
