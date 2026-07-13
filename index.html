@@ -83,7 +83,7 @@
     .markdown-section h2,
     .markdown-section h3,
     .markdown-section h4 {
-      color: var(--text-heading);
+      color: var(--text-heading) !important;
       font-weight: 700;
     }
 
@@ -93,6 +93,12 @@
 
     .markdown-section p {
       color: var(--text);
+    }
+
+    .markdown-section strong,
+    .markdown-section b {
+      color: var(--text-heading);
+      font-weight: 700;
     }
 
     /* 行内代码 */
