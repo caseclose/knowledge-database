@@ -61,6 +61,50 @@ opencode --session <Session_ID>
 
 也可在 `config.toml` 中显式调整单次输出上限（`limit`），选用支持长输出的编程模型。
 
+### 5. Thinking 超长导致无输出
+
+推理模型在复杂任务上会先 "想" 再 "做"。思考本身消耗输出 Token，极端情况下思考把预算全部吃光，`finish_reason: "length"` 但实际没有任何代码或文本产出，只有一段被截断的 thinking。
+
+**应对策略：**
+
+| 策略 | 做法 | 原理 |
+|------|------|------|
+| 调大输出上限 | 修改 `opencode.json` 中 `limit.output` | 给思考和输出都留更多空间 |
+| 拆小任务 | 一次只给一个具体小步骤 | 减少需要思考的维度 |
+| 给方向而非给问题 | "用方案 A 实现" 而非 "想办法实现" | 跳过探索性思考 |
+| 先规划再执行 | 第一步让它只输出计划，确认后再执行 | 把思考和执行拆成两轮 |
+| 换非推理模型 | `/models` 切到不带 thinking 的模型 | 直接输出，不消耗思考 Token |
+
+**实操：在 `opencode.json` 中调大输出上限**
+
+OpenCode 命令行没有 `--max-tokens` 参数，输出上限在配置文件中控制：
+
+```bash
+# 配置文件路径
+~/.config/opencode/opencode.json
+```
+
+找到对应 provider 和 model，修改 `limit.output`：
+
+```json
+{
+  "provider": {
+    "coding-plan": {
+      "models": {
+        "glm-5.2": {
+          "limit": {
+            "context": 1048576,
+            "output": 16384
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+> 默认 `output: 4096` 极易触发截断。调到 `16384` 或 `32000`（取决于 API 实际支持的上限）可大幅减少截断。修改后重启 OpenCode 生效。
+
 ## 总结
 
 | 问题 | 根因 | 解法 |
@@ -69,5 +113,6 @@ opencode --session <Session_ID>
 | CLI 崩溃后丢失进度 | 会话中断 | `opencode -c` 断点续传 |
 | 一直 Thinking 不停 | Agent 死循环 | `Ctrl + C` 中断 + `/clear` 清空 |
 | 大任务必然截断 | 输出上限太小 | 初始 Prompt 分批交卷 |
+| Thinking 吃光 Token 无输出 | 推理思考过长 | 调大 `opencode.json` 的 `limit.output` |
 
-> **一句话：** 截断用精准续写指令，崩溃用 `--continue` 续传，大任务提前分批，卡死就 `Ctrl + C` + `/clear` 轻装重来。
+> **一句话：** 截断用精准续写指令，崩溃用 `--continue` 续传，大任务提前分批，Thinking 超长就调大 `opencode.json` 的 `output` 上限，卡死就 `Ctrl + C` + `/clear` 轻装重来。
