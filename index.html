@@ -6,9 +6,61 @@
   <title>knowledge-database</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify/lib/themes/vue.css" />
+  <script>
+    (function () {
+      var saved = localStorage.getItem("kb-theme");
+      var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      var theme = saved || (prefersDark ? "dark" : "light");
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
   <style>
     :root {
-      --theme-color: #2c7be5;
+      --accent: #2c7be5;
+      --bg: #ffffff;
+      --bg-secondary: #f8fafc;
+      --text: #2c3e50;
+      --text-heading: #1a202c;
+      --text-muted: #4a5568;
+      --border: #e2e8f0;
+      --code-bg: #1e293b;
+      --code-text: #e2e8f0;
+      --inline-code-bg: #f1f5f9;
+      --inline-code-text: #e53e3e;
+      --table-header-bg: #edf2f7;
+      --table-even-bg: #f8fafc;
+      --blockquote-bg: #f0f7ff;
+      --blockquote-text: #4a5568;
+      --sidebar-bg: #ffffff;
+      --sidebar-text: #4a5568;
+      --search-bg: #f1f5f9;
+      --mermaid-bg: #f8fafc;
+      --mermaid-border: #e2e8f0;
+      --shadow: rgba(30, 41, 59, 0.12);
+    }
+
+    [data-theme="dark"] {
+      --accent: #60a5fa;
+      --bg: #0f172a;
+      --bg-secondary: #1e293b;
+      --text: #cbd5e1;
+      --text-heading: #f1f5f9;
+      --text-muted: #94a3b8;
+      --border: #334155;
+      --code-bg: #0d1117;
+      --code-text: #e2e8f0;
+      --inline-code-bg: #1e293b;
+      --inline-code-text: #f87171;
+      --table-header-bg: #1e293b;
+      --table-even-bg: #0f172a;
+      --blockquote-bg: #1e293b;
+      --blockquote-text: #94a3b8;
+      --sidebar-bg: #0f172a;
+      --sidebar-text: #94a3b8;
+      --search-bg: #1e293b;
+      --mermaid-bg: #1e293b;
+      --mermaid-border: #334155;
+      --shadow: rgba(0, 0, 0, 0.3);
     }
 
     body {
@@ -18,12 +70,12 @@
       -moz-osx-font-smoothing: grayscale;
       -webkit-text-size-adjust: 100%;
       text-rendering: optimizeLegibility;
-      color: #2c3e50;
-      background: #fff;
+      color: var(--text);
+      background: var(--bg);
     }
 
     .markdown-section {
-      color: #2c3e50;
+      color: var(--text);
       max-width: 900px;
     }
 
@@ -31,20 +83,24 @@
     .markdown-section h2,
     .markdown-section h3,
     .markdown-section h4 {
-      color: #1a202c;
+      color: var(--text-heading);
       font-weight: 700;
     }
 
     .markdown-section a {
-      color: #2c7be5;
+      color: var(--accent);
+    }
+
+    .markdown-section p {
+      color: var(--text);
     }
 
     /* 行内代码 */
     .markdown-section code {
       font-family: "SF Mono", "JetBrains Mono", "Fira Code", Menlo, Monaco,
         Consolas, monospace;
-      background: #f1f5f9;
-      color: #e53e3e;
+      background: var(--inline-code-bg);
+      color: var(--inline-code-text);
       border-radius: 4px;
       padding: 2px 6px;
       -webkit-font-smoothing: antialiased;
@@ -53,18 +109,18 @@
 
     /* 代码块容器 */
     .markdown-section pre {
-      background: #1e293b;
+      background: var(--code-bg);
       border-radius: 10px;
       padding: 2.2em 0 1.3em;
       margin: 1.6em 0;
-      box-shadow: 0 4px 14px rgba(30, 41, 59, 0.12);
+      box-shadow: 0 4px 14px var(--shadow);
       position: relative;
       overflow: hidden;
     }
 
     .markdown-section pre code {
       background: transparent;
-      color: #e2e8f0;
+      color: var(--code-text);
       padding: 0 1.6em;
       font-size: 0.9em;
       line-height: 1.65;
@@ -115,7 +171,7 @@
     }
 
     .docsify-copy-code-button:hover {
-      background: rgba(44, 123, 229, 0.5) !important;
+      background: var(--accent) !important;
       color: #fff !important;
     }
 
@@ -169,9 +225,9 @@
     }
 
     .markdown-section blockquote {
-      border-left: 4px solid #2c7be5;
-      background: #f0f7ff;
-      color: #4a5568;
+      border-left: 4px solid var(--accent);
+      background: var(--blockquote-bg);
+      color: var(--blockquote-text);
     }
 
     .markdown-section table {
@@ -184,45 +240,66 @@
     }
 
     .markdown-section table tr:nth-child(even) {
-      background: #f8fafc;
+      background: var(--table-even-bg);
     }
 
     .markdown-section table th {
-      background: #edf2f7;
-      color: #1a202c;
+      background: var(--table-header-bg);
+      color: var(--text-heading);
       font-weight: 600;
     }
 
+    .markdown-section table td {
+      color: var(--text);
+    }
+
+    /* 侧边栏 */
     .sidebar {
-      color: #4a5568;
+      color: var(--sidebar-text);
+      background: var(--sidebar-bg);
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
     }
 
     .sidebar ul li a {
-      color: #4a5568;
+      color: var(--sidebar-text);
     }
 
     .sidebar ul li.active > a {
-      color: #2c7be5;
+      color: var(--accent);
       font-weight: 600;
     }
 
     .sidebar-nav a.active {
-      color: #2c7be5;
+      color: var(--accent);
     }
 
     .app-name-link {
-      color: #2c7be5;
+      color: var(--accent);
       font-weight: 700;
     }
 
     .search input {
       border-radius: 6px;
+      background: var(--search-bg);
+      color: var(--text);
+      border-color: var(--border);
+    }
+
+    .search input:focus {
+      border-color: var(--accent);
     }
 
     .search .matching-post {
       border-radius: 6px;
+    }
+
+    .search p {
+      color: var(--text);
+    }
+
+    .search h3 {
+      color: var(--text-heading);
     }
 
     /* 封面页 */
@@ -265,8 +342,8 @@
     /* Mermaid 图表 */
     .markdown-section .mermaid {
       text-align: center;
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
+      background: var(--mermaid-bg);
+      border: 1px solid var(--mermaid-border);
       border-radius: 10px;
       padding: 1.5em 1em;
       margin: 1.5em 0;
@@ -281,6 +358,36 @@
     .markdown-section .mermaid .node {
       cursor: pointer;
     }
+
+    /* 主题切换按钮 */
+    .theme-toggle {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      z-index: 999;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--bg-secondary);
+      cursor: pointer;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px var(--shadow);
+    }
+
+    .theme-toggle:hover {
+      border-color: var(--accent);
+      transform: scale(1.08);
+    }
+
+    .theme-toggle .icon-sun { display: none; }
+    .theme-toggle .icon-moon { display: inline; }
+    [data-theme="dark"] .theme-toggle .icon-sun { display: inline; }
+    [data-theme="dark"] .theme-toggle .icon-moon { display: none; }
   </style>
 </head>
 
@@ -327,6 +434,23 @@
             if (window.mermaid) {
               window.mermaid.init(undefined, ".mermaid:not([data-processed])");
             }
+          });
+        },
+        function (hook) {
+          hook.mounted(function () {
+            var btn = document.createElement("button");
+            btn.className = "theme-toggle";
+            btn.innerHTML =
+              '<span class="icon-sun">☀️</span><span class="icon-moon">🌙</span>';
+            btn.title = "切换深色/浅色模式";
+            btn.addEventListener("click", function () {
+              var current =
+                document.documentElement.getAttribute("data-theme");
+              var next = current === "dark" ? "light" : "dark";
+              document.documentElement.setAttribute("data-theme", next);
+              localStorage.setItem("kb-theme", next);
+            });
+            document.body.appendChild(btn);
           });
         },
       ],
