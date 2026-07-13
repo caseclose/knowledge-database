@@ -39,6 +39,7 @@
       color: #2c7be5;
     }
 
+    /* 行内代码 */
     .markdown-section code {
       font-family: "SF Mono", "JetBrains Mono", "Fira Code", Menlo, Monaco,
         Consolas, monospace;
@@ -50,14 +51,106 @@
       -moz-osx-font-smoothing: grayscale;
     }
 
+    /* 代码块容器 */
     .markdown-section pre {
-      border-radius: 8px;
+      background: #1e293b;
+      border-radius: 10px;
+      padding: 1.3em 0;
+      margin: 1.6em 0;
+      box-shadow: 0 4px 14px rgba(30, 41, 59, 0.12);
+      position: relative;
+      overflow: hidden;
     }
 
     .markdown-section pre code {
-      background: #1e293b;
+      background: transparent;
       color: #e2e8f0;
-      padding: 0;
+      padding: 0 1.6em;
+      font-size: 0.9em;
+      line-height: 1.65;
+      font-family: "SF Mono", "JetBrains Mono", "Fira Code", Menlo, Monaco,
+        Consolas, monospace;
+    }
+
+    /* 语言标签徽章 */
+    .markdown-section pre[data-lang]::before {
+      content: attr(data-lang);
+      position: absolute;
+      top: 0;
+      right: 0;
+      padding: 4px 12px;
+      font-size: 0.72em;
+      font-family: "SF Mono", "JetBrains Mono", Menlo, monospace;
+      color: #94a3b8;
+      background: rgba(255, 255, 255, 0.06);
+      border-bottom-left-radius: 8px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    /* 复制按钮 */
+    .docsify-copy-code-button {
+      background: rgba(255, 255, 255, 0.1) !important;
+      color: #94a3b8 !important;
+      font-size: 0.75em !important;
+      padding: 4px 10px !important;
+      border-radius: 4px !important;
+      border: none !important;
+      transition: all 0.2s ease;
+    }
+
+    .docsify-copy-code-button:hover {
+      background: rgba(255, 255, 255, 0.2) !important;
+      color: #e2e8f0 !important;
+    }
+
+    /* Prism 语法高亮配色 (Material 风格) */
+    .token.comment,
+    .token.prolog,
+    .token.doctype,
+    .token.cdata {
+      color: #5c6370;
+      font-style: italic;
+    }
+    .token.punctuation {
+      color: #89ddff;
+    }
+    .token.property,
+    .token.tag,
+    .token.boolean,
+    .token.number,
+    .token.constant,
+    .token.symbol {
+      color: #f78c6c;
+    }
+    .token.selector,
+    .token.attr-name,
+    .token.string,
+    .token.char,
+    .token.builtin,
+    .token.inserted {
+      color: #c3e88d;
+    }
+    .token.operator,
+    .token.entity,
+    .token.url,
+    .language-css .token.string,
+    .style .token.string {
+      color: #89ddff;
+    }
+    .token.atrule,
+    .token.attr-value,
+    .token.keyword {
+      color: #c792ea;
+    }
+    .token.function,
+    .token.class-name {
+      color: #82aaff;
+    }
+    .token.regex,
+    .token.important,
+    .token.variable {
+      color: #d19a66;
     }
 
     .markdown-section blockquote {
