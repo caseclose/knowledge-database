@@ -359,6 +359,109 @@
       cursor: pointer;
     }
 
+    /* 自定义多模式搜索 */
+    .kb-search {
+      padding: 10px 15px 6px;
+    }
+
+    .kb-search-input {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--search-bg);
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+      box-sizing: border-box;
+      transition: border-color 0.2s;
+    }
+
+    .kb-search-input:focus {
+      border-color: var(--accent);
+    }
+
+    .kb-search-modes {
+      display: flex;
+      gap: 4px;
+      margin-top: 8px;
+    }
+
+    .kb-mode-btn {
+      flex: 1;
+      padding: 4px 0;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .kb-mode-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .kb-mode-btn.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    .kb-search-results {
+      margin-top: 8px;
+      max-height: 420px;
+      overflow-y: auto;
+    }
+
+    .kb-result-item {
+      padding: 8px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-bottom: 4px;
+      transition: background 0.2s;
+    }
+
+    .kb-result-item:hover {
+      background: var(--bg-secondary);
+    }
+
+    .kb-result-title {
+      font-weight: 600;
+      color: var(--text-heading);
+      font-size: 13px;
+      margin-bottom: 3px;
+    }
+
+    .kb-result-path {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 3px;
+    }
+
+    .kb-result-snippet {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .kb-result-snippet mark {
+      background: rgba(44, 123, 229, 0.2);
+      color: var(--accent);
+      border-radius: 2px;
+      padding: 0 2px;
+      font-weight: 600;
+    }
+
+    .kb-search-hint {
+      font-size: 12px;
+      color: var(--text-muted);
+      padding: 12px 10px;
+      text-align: center;
+    }
+
     /* 主题切换按钮 */
     .theme-toggle {
       position: fixed;
@@ -405,6 +508,7 @@
 
 <body>
   <div id="app">加载中...</div>
+  <script src="search.js"></script>
   <script>
     window.$docsify = {
       name: "knowledge-database",
@@ -413,12 +517,6 @@
       loadSidebar: true,
       subMaxLevel: 3,
       auto2top: true,
-      search: {
-        placeholder: "搜索知识",
-        noData: "没有找到结果",
-        depth: 3,
-        hideOtherSidebarContent: false,
-      },
       copyCode: {
         buttonText: "复制",
         errorText: "复制失败",
@@ -466,6 +564,7 @@
             document.body.appendChild(btn);
           });
         },
+        kbSearchPlugin,
       ],
     };
   </script>
@@ -484,7 +583,7 @@
     });
   </script>
   <script src="//cdn.jsdelivr.net/npm/docsify/lib/docsify.min.js"></script>
-  <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/fuse.js@6/dist/fuse.min.js"></script>
   <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/emoji.min.js"></script>
   <script src="//cdn.jsdelivr.net/npm/docsify-copy-code/dist/docsify-copy-code.min.js"></script>
   <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/zoom-image.min.js"></script>
