@@ -5,3 +5,6 @@
 - Agent
   - OpenCode
     - [输出截断与思考超时](agent/opencode/output-truncation-and-thinking-timeout.md)
+- AI
+  - Prompt Engineering
+    - [结构化 Image Captioning](ai/prompt-engineering/structured-image-captioning.md)

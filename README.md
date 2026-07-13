@@ -84,3 +84,4 @@ knowledge-database/
 |------|------|
 | `linux/gpu/fuser-vs-pkill-release-gpu-memory.md` | `pkill` 不释放 GPU 显存时，用 `fuser` 强制清理 |
 | `agent/opencode/output-truncation-and-thinking-timeout.md` | OpenCode 输出截断用精准续写，崩溃用 `--continue`，大任务分批 |
+| `ai/prompt-engineering/structured-image-captioning.md` | 结构化 CoT Prompt 让 VLM 无损描述图片，喂给纯文本模型 |
