@@ -8,9 +8,9 @@
 
 ## 方案：双 OCR 管线
 
-| 维度 | WXGOCR (Astra) | TextPecker (vLLM) |
+| 维度 | 内部 OCR 服务 (Astra) | TextPecker (vLLM) |
 |------|----------------|-------------------|
-| 引擎 | 腾讯内部 OCR 服务（protobuf/py3meshkit） | VLM 推理（InternVL3-8B / Qwen3VL-8B） |
+| 引擎 | 内部 OCR 服务（protobuf） | VLM 推理（InternVL3-8B / Qwen3VL-8B） |
 | 部署 | 远程服务，无需本地 GPU | 本地 vLLM，需 GPU |
 | 并发 | `asyncio.Semaphore` + 异步锁 | `ThreadPoolExecutor` + `AsyncOpenAI` |
 | 识别失败处理 | 无（纯 OCR） | 用 `<#>` 标记无法识别的字符 |
@@ -23,7 +23,7 @@
 
 所有指标在 `metrics/recalc_metrics.py` 中实现，NED = 归一化编辑距离。
 
-### WXGOCR 指标（5 个）
+### 内部 OCR 指标（5 个）
 
 | 指标 | 含义 | 计算 |
 |------|------|------|
@@ -46,13 +46,13 @@
 ### 关键区别
 
 两条管线的 `char_F1` 实现完全不同：
-- **WXGOCR**：multiset Counter 交集，完全忽略字符顺序
+- **内部 OCR**：multiset Counter 交集，完全忽略字符顺序
 - **TextPecker**：Levenshtein 编辑对齐，区分替换/插入/删除，且枚举所有分段组合方式取最优
 
 ## 评测流程
 
 ```bash
-# 1. WXGOCR 评测（无需 GPU）
+# 1. 内部 OCR 评测（无需 GPU）
 bash run_eval_with_wxgocr.sh --image_dir /path/to/images --model_version Qwen-Image
 
 # 2. TextPecker 评测（需 GPU）
@@ -83,8 +83,8 @@ bash run_dashboard.sh
 | 要点 | 说明 |
 |------|------|
 | 双管线交叉验证 | 传统 OCR + VLM 推理，互补盲区 |
-| 指标分两套 | WXGOCR 无序匹配，TextPecker 有序对齐 |
+| 指标分两套 | 内部 OCR 无序匹配，TextPecker 有序对齐 |
 | 断点续传 | 流式写入 JSONL，崩溃只丢当前批次 |
 | 看板自动发现 | 扫盘 `wegen_text_{OCR}_{model}.json`，无需手动注册 |
 
-> **一句话：** 用 WXGOCR 和 TextPecker 两条 OCR 管线分别从文生图结果中提取文字，与真值对比计算 edit_sim / char_F1 等指标，看板并排对比多模型渲染文字能力。
+> **一句话：** 用 内部 OCR 和 TextPecker 两条 OCR 管线分别从文生图结果中提取文字，与真值对比计算 edit_sim / char_F1 等指标，看板并排对比多模型渲染文字能力。

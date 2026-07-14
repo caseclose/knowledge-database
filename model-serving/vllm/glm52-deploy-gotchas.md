@@ -84,7 +84,7 @@ ValueError: KV cache needed (2.83 GiB) > available (0.03 GiB)
 
 ```bash
 # 下载 — 挂
-export http_proxy=http://<PROXY>:11113
+export http_proxy=http://<PROXY>:<PORT>
 # 推理 — 清
 unset http_proxy https_proxy all_proxy HTTP_PROXY HTTPS_PROXY ALL_PROXY
 export no_proxy="127.0.0.1,localhost,<MASTER_IP>,<WORKER_IP>"

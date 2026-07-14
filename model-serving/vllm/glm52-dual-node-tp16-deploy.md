@@ -20,18 +20,18 @@ GLM-5.2 是智谱最新旗舰模型，704 GB block-fp8 权重（`GlmMoeDsaForCau
 | 节点 | IP | 卡 | 登录 |
 |------|----|----|----|
 | 主节点 (head) | `<MASTER_IP>` | 8× H20 96 GiB | 本地 shell |
-| 第二节点 (worker) | `<WORKER_IP>` | 8× H20 96 GiB | 容器交互登录工具 |
+| 第二节点 (worker) | `<WORKER_IP>` | 8× H20 96 GiB | SSH |
 
-共享盘 `<CEPHFS_MOUNT>` 两节点均挂载，conda 环境 `<CEPHFS_MOUNT>/<USER>/miniconda3/envs/glm52`、权重 `<CEPHFS_MOUNT>/models/huggingface/zai-org/GLM-5.2-FP8` 直接可用。
+共享盘 `<SHARED_MOUNT>` 两节点均挂载，conda 环境 `<SHARED_MOUNT>/<USER>/miniconda3/envs/glm52`、权重 `<SHARED_MOUNT>/models/huggingface/zai-org/GLM-5.2-FP8` 直接可用。
 
-硬件：驱动 `575.57.08` / CUDA `12.9` / Mellanox IB 网卡（NCCL 走 bond1）。
+硬件：H20 96 GiB × 2 节点，NCCL 走高速网络。
 
 ## 启动流程（三步）
 
 ### Step 1 — 主节点起 ray head
 
 ```bash
-BIN=<CEPHFS_MOUNT>/<USER>/miniconda3/envs/glm52/bin
+BIN=<SHARED_MOUNT>/<USER>/miniconda3/envs/glm52/bin
 unset http_proxy https_proxy all_proxy HTTP_PROXY HTTPS_PROXY ALL_PROXY
 export no_proxy="localhost,127.0.0.1,<MASTER_IP>,<WORKER_IP>"
 
@@ -42,25 +42,23 @@ $BIN/ray start --head --node-ip-address=<MASTER_IP> --port=6379 \
 
 ### Step 2 — 第二节点连入
 
-方式 A：主节点用 pty 脚本驱动
+方式 A：主节点通过 SSH 远程执行
 
 ```bash
-cd <CEPHFS_MOUNT>/<USER>/code/glm_deploy
-N2_TIMEOUT=120 python3 node2_exec.py \
-  "unset http_proxy https_proxy all_proxy HTTP_PROXY HTTPS_PROXY ALL_PROXY; \
+ssh <WORKER_IP> "unset http_proxy https_proxy all_proxy HTTP_PROXY HTTPS_PROXY ALL_PROXY; \
    export no_proxy=localhost,127.0.0.1,<MASTER_IP>,<WORKER_IP>; \
-   $BIN/ray stop 2>/dev/null; sleep 2; \
-   $BIN/ray start --address=<MASTER_IP>:6379 --node-ip-address=<WORKER_IP> --num-gpus=8"
+   <SHARED_MOUNT>/<USER>/miniconda3/envs/glm52/bin/ray stop 2>/dev/null; sleep 2; \
+   <SHARED_MOUNT>/<USER>/miniconda3/envs/glm52/bin/ray start --address=<MASTER_IP>:6379 --node-ip-address=<WORKER_IP> --num-gpus=8"
 ```
 
-方式 B：手动通过容器登录工具登录第二节点后执行同样的 `ray start` 命令。
+方式 B：手动 SSH 登录第二节点后执行同样的 `ray start` 命令。
 
 ### Step 3 — 主节点验证并启动 vLLM
 
 ```bash
 $BIN/ray status                                # 应显示 16.0 GPU
-cd <CEPHFS_MOUNT>/<USER>/code/glm_deploy
-nohup ./serve_glm_vllm_multinode.sh > vllm_multinode.log 2>&1 &
+cd <SHARED_MOUNT>/<USER>/code/glm_deploy
+nohup ./deploy_vllm.sh > vllm_multinode.log 2>&1 &
 tail -f vllm_multinode.log                     # 等 "Application startup complete"
 ```
 
