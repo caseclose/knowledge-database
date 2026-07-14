@@ -10,3 +10,5 @@
     - [结构化 Image Captioning](ai/prompt-engineering/structured-image-captioning.md)
   - Eval
     - [文生图渲染文字评测](ai/eval/text-to-image-render-text-eval.md)
+  - Data Pipeline
+    - [图像 Caption 标注管线](ai/data-pipeline/image-caption-annotation-pipeline.md)

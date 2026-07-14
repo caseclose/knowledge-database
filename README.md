@@ -126,3 +126,4 @@ knowledge-database/
 | `agent/opencode/output-truncation-and-thinking-timeout.md` | OpenCode 输出截断用精准续写，崩溃用 `--continue`，大任务分批 |
 | `ai/prompt-engineering/structured-image-captioning.md` | 结构化 CoT Prompt 让 VLM 无损描述图片，喂给纯文本模型 |
 | `ai/eval/text-to-image-render-text-eval.md` | 双 OCR 管线（WXGOCR + TextPecker）评测文生图渲染文字准确率 |
+| `ai/data-pipeline/image-caption-annotation-pipeline.md` | 两阶段 VLM 直标 + Rewrite 融合的图像 Caption 标注管线 |
