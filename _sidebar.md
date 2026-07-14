@@ -8,3 +8,5 @@
 - AI
   - Prompt Engineering
     - [结构化 Image Captioning](ai/prompt-engineering/structured-image-captioning.md)
+  - Eval
+    - [文生图渲染文字评测](ai/eval/text-to-image-render-text-eval.md)
