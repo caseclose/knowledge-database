@@ -82,14 +82,19 @@ knowledge-database/
 ├── data-pipeline/
 │   └── image-caption/
 │       └── image-caption-annotation-pipeline.md
+├── model-serving/
+│   └── vllm/
+│       ├── glm52-dual-node-tp16-deploy.md
+│       └── glm52-deploy-gotchas.md
 └── ...
 ```
 
-- **一级目录**是大的技术领域，如 `linux`、`agent`、`prompt-engineering`、`eval`、`data-pipeline`。
+- **一级目录**是大的技术领域，如 `linux`、`agent`、`prompt-engineering`、`eval`、`data-pipeline`、`model-serving`。
   - `prompt-engineering`：Prompt 设计技巧与模板，让模型按预期输出结构化结果。
   - `eval`：模型能力评测方法，包括指标设计、评测管线、看板对比。
   - `data-pipeline`：数据标注与处理管线，涵盖标注策略、工程架构、质量控制。
-- **二级目录**是具体子主题，如 `gpu`、`opencode`、`vlm-image-captioning`、`text-rendering-accuracy`、`image-caption`。
+  - `model-serving`：模型部署与推理服务，包括 vLLM 集群搭建、性能调优、故障排查。
+- **二级目录**是具体子主题，如 `gpu`、`opencode`、`vlm-image-captioning`、`text-rendering-accuracy`、`image-caption`、`vllm`。
 - 领域下可继续按子主题嵌套，如 `linux/gpu/`、`linux/shell/`。
 - 不要在根目录直接堆放 `.md` 文件，所有知识必须归入对应领域目录。
 
@@ -147,3 +152,5 @@ knowledge-database/
 | `prompt-engineering/vlm-image-captioning/structured-image-captioning.md` | 结构化 CoT Prompt 让 VLM 无损描述图片，喂给纯文本模型 |
 | `eval/text-rendering-accuracy/text-to-image-render-text-eval.md` | 双 OCR 管线（WXGOCR + TextPecker）评测文生图渲染文字准确率 |
 | `data-pipeline/image-caption/image-caption-annotation-pipeline.md` | 两阶段 VLM 直标 + Rewrite 融合的图像 Caption 标注管线 |
+| `model-serving/vllm/glm52-dual-node-tp16-deploy.md` | 双节点 16×H20 TP=16 部署 GLM-5.2-FP8，ray 编排 + Codex CLI 接入 |
+| `model-serving/vllm/glm52-deploy-gotchas.md` | GLM-5.2 部署五坑（cu129 构建 / flashinfer 编译 / KV cache / 代理 / codex） |

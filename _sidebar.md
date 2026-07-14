@@ -14,3 +14,7 @@
 - Data Pipeline
   - Image Caption
     - [图像 Caption 标注管线](data-pipeline/image-caption/image-caption-annotation-pipeline.md)
+- Model Serving
+  - vLLM
+    - [双节点 GLM-5.2 TP=16 部署](model-serving/vllm/glm52-dual-node-tp16-deploy.md)
+    - [GLM-5.2 部署五坑](model-serving/vllm/glm52-deploy-gotchas.md)
