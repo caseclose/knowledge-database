@@ -12,7 +12,9 @@
 graph LR
     KB["📚 knowledge-database"] --> Linux["Linux"]
     KB --> Agent["Agent"]
-    KB --> AI["AI"]
+    KB --> PE["Prompt Engineering"]
+    KB --> Eval["Eval"]
+    KB --> DP["Data Pipeline"]
 
     Linux --> GPU["gpu"]
     GPU --> K1["fuser vs pkill 释放显存"]
@@ -20,8 +22,11 @@ graph LR
     Agent --> OC["opencode"]
     OC --> K2["输出截断与思考超时"]
 
-    AI --> PE["prompt-engineering"]
     PE --> K3["结构化 Image Captioning"]
+
+    Eval --> K4["文生图渲染文字评测"]
+
+    DP --> K5["图像 Caption 标注管线"]
 
     classDef root fill:#2c7be5,color:#fff,stroke:none
     classDef category fill:#eef4ff,color:#2c7be5,stroke:#2c7be5,stroke-width:2px
@@ -29,13 +34,15 @@ graph LR
     classDef knowledge fill:#fff,color:#2c7be5,stroke:#2c7be5,stroke-width:2px
 
     class KB root
-    class Linux,Agent,AI category
-    class GPU,OC,PE sub
-    class K1,K2,K3 knowledge
+    class Linux,Agent,PE,Eval,DP category
+    class GPU,OC sub
+    class K1,K2,K3,K4,K5 knowledge
 
     click K1 href "#/linux/gpu/fuser-vs-pkill-release-gpu-memory"
     click K2 href "#/agent/opencode/output-truncation-and-thinking-timeout"
-    click K3 href "#/ai/prompt-engineering/structured-image-captioning"
+    click K3 href "#/prompt-engineering/structured-image-captioning"
+    click K4 href "#/eval/text-to-image-render-text-eval"
+    click K5 href "#/data-pipeline/image-caption-annotation-pipeline"
 ```
 
 > 点击图中蓝色边框的知识条目可直接跳转阅读。
@@ -63,13 +70,16 @@ knowledge-database/
 ├── agent/
 │   └── opencode/
 │       └── output-truncation-and-thinking-timeout.md
-├── ai/
-│   └── prompt-engineering/
-│       └── structured-image-captioning.md
+├── prompt-engineering/
+│   └── structured-image-captioning.md
+├── eval/
+│   └── text-to-image-render-text-eval.md
+├── data-pipeline/
+│   └── image-caption-annotation-pipeline.md
 └── ...
 ```
 
-- **一级目录**是大的技术领域，如 `linux`、`python`、`git`、`docker`、`network`。
+- **一级目录**是大的技术领域，如 `linux`、`agent`、`prompt-engineering`、`eval`、`data-pipeline`。
 - 领域下可继续按子主题嵌套，如 `linux/gpu/`、`linux/shell/`。
 - 不要在根目录直接堆放 `.md` 文件，所有知识必须归入对应领域目录。
 
@@ -124,6 +134,6 @@ knowledge-database/
 |------|------|
 | `linux/gpu/fuser-vs-pkill-release-gpu-memory.md` | `pkill` 不释放 GPU 显存时，用 `fuser` 强制清理 |
 | `agent/opencode/output-truncation-and-thinking-timeout.md` | OpenCode 输出截断用精准续写，崩溃用 `--continue`，大任务分批 |
-| `ai/prompt-engineering/structured-image-captioning.md` | 结构化 CoT Prompt 让 VLM 无损描述图片，喂给纯文本模型 |
-| `ai/eval/text-to-image-render-text-eval.md` | 双 OCR 管线（WXGOCR + TextPecker）评测文生图渲染文字准确率 |
-| `ai/data-pipeline/image-caption-annotation-pipeline.md` | 两阶段 VLM 直标 + Rewrite 融合的图像 Caption 标注管线 |
+| `prompt-engineering/structured-image-captioning.md` | 结构化 CoT Prompt 让 VLM 无损描述图片，喂给纯文本模型 |
+| `eval/text-to-image-render-text-eval.md` | 双 OCR 管线（WXGOCR + TextPecker）评测文生图渲染文字准确率 |
+| `data-pipeline/image-caption-annotation-pipeline.md` | 两阶段 VLM 直标 + Rewrite 融合的图像 Caption 标注管线 |

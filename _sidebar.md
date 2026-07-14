@@ -5,10 +5,9 @@
 - Agent
   - OpenCode
     - [输出截断与思考超时](agent/opencode/output-truncation-and-thinking-timeout.md)
-- AI
-  - Prompt Engineering
-    - [结构化 Image Captioning](ai/prompt-engineering/structured-image-captioning.md)
-  - Eval
-    - [文生图渲染文字评测](ai/eval/text-to-image-render-text-eval.md)
-  - Data Pipeline
-    - [图像 Caption 标注管线](ai/data-pipeline/image-caption-annotation-pipeline.md)
+- Prompt Engineering
+  - [结构化 Image Captioning](prompt-engineering/structured-image-captioning.md)
+- Eval
+  - [文生图渲染文字评测](eval/text-to-image-render-text-eval.md)
+- Data Pipeline
+  - [图像 Caption 标注管线](data-pipeline/image-caption-annotation-pipeline.md)
