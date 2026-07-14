@@ -80,6 +80,9 @@ knowledge-database/
 ```
 
 - **一级目录**是大的技术领域，如 `linux`、`agent`、`prompt-engineering`、`eval`、`data-pipeline`。
+  - `prompt-engineering`：Prompt 设计技巧与模板，让模型按预期输出结构化结果。
+  - `eval`：模型能力评测方法，包括指标设计、评测管线、看板对比。
+  - `data-pipeline`：数据标注与处理管线，涵盖标注策略、工程架构、质量控制。
 - 领域下可继续按子主题嵌套，如 `linux/gpu/`、`linux/shell/`。
 - 不要在根目录直接堆放 `.md` 文件，所有知识必须归入对应领域目录。
 
