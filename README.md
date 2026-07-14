@@ -22,11 +22,14 @@ graph LR
     Agent --> OC["opencode"]
     OC --> K2["输出截断与思考超时"]
 
-    PE --> K3["结构化 Image Captioning"]
+    PE --> PE1["vlm-image-captioning"]
+    PE1 --> K3["结构化 Image Captioning"]
 
-    Eval --> K4["文生图渲染文字评测"]
+    Eval --> EV1["text-rendering-accuracy"]
+    EV1 --> K4["文生图渲染文字评测"]
 
-    DP --> K5["图像 Caption 标注管线"]
+    DP --> DP1["image-caption"]
+    DP1 --> K5["图像 Caption 标注管线"]
 
     classDef root fill:#2c7be5,color:#fff,stroke:none
     classDef category fill:#eef4ff,color:#2c7be5,stroke:#2c7be5,stroke-width:2px
@@ -35,14 +38,14 @@ graph LR
 
     class KB root
     class Linux,Agent,PE,Eval,DP category
-    class GPU,OC sub
+    class GPU,OC,PE1,EV1,DP1 sub
     class K1,K2,K3,K4,K5 knowledge
 
     click K1 href "#/linux/gpu/fuser-vs-pkill-release-gpu-memory"
     click K2 href "#/agent/opencode/output-truncation-and-thinking-timeout"
-    click K3 href "#/prompt-engineering/structured-image-captioning"
-    click K4 href "#/eval/text-to-image-render-text-eval"
-    click K5 href "#/data-pipeline/image-caption-annotation-pipeline"
+    click K3 href "#/prompt-engineering/vlm-image-captioning/structured-image-captioning"
+    click K4 href "#/eval/text-rendering-accuracy/text-to-image-render-text-eval"
+    click K5 href "#/data-pipeline/image-caption/image-caption-annotation-pipeline"
 ```
 
 > 点击图中蓝色边框的知识条目可直接跳转阅读。
@@ -71,11 +74,14 @@ knowledge-database/
 │   └── opencode/
 │       └── output-truncation-and-thinking-timeout.md
 ├── prompt-engineering/
-│   └── structured-image-captioning.md
+│   └── vlm-image-captioning/
+│       └── structured-image-captioning.md
 ├── eval/
-│   └── text-to-image-render-text-eval.md
+│   └── text-rendering-accuracy/
+│       └── text-to-image-render-text-eval.md
 ├── data-pipeline/
-│   └── image-caption-annotation-pipeline.md
+│   └── image-caption/
+│       └── image-caption-annotation-pipeline.md
 └── ...
 ```
 
@@ -83,6 +89,7 @@ knowledge-database/
   - `prompt-engineering`：Prompt 设计技巧与模板，让模型按预期输出结构化结果。
   - `eval`：模型能力评测方法，包括指标设计、评测管线、看板对比。
   - `data-pipeline`：数据标注与处理管线，涵盖标注策略、工程架构、质量控制。
+- **二级目录**是具体子主题，如 `gpu`、`opencode`、`vlm-image-captioning`、`text-rendering-accuracy`、`image-caption`。
 - 领域下可继续按子主题嵌套，如 `linux/gpu/`、`linux/shell/`。
 - 不要在根目录直接堆放 `.md` 文件，所有知识必须归入对应领域目录。
 
@@ -137,6 +144,6 @@ knowledge-database/
 |------|------|
 | `linux/gpu/fuser-vs-pkill-release-gpu-memory.md` | `pkill` 不释放 GPU 显存时，用 `fuser` 强制清理 |
 | `agent/opencode/output-truncation-and-thinking-timeout.md` | OpenCode 输出截断用精准续写，崩溃用 `--continue`，大任务分批 |
-| `prompt-engineering/structured-image-captioning.md` | 结构化 CoT Prompt 让 VLM 无损描述图片，喂给纯文本模型 |
-| `eval/text-to-image-render-text-eval.md` | 双 OCR 管线（WXGOCR + TextPecker）评测文生图渲染文字准确率 |
-| `data-pipeline/image-caption-annotation-pipeline.md` | 两阶段 VLM 直标 + Rewrite 融合的图像 Caption 标注管线 |
+| `prompt-engineering/vlm-image-captioning/structured-image-captioning.md` | 结构化 CoT Prompt 让 VLM 无损描述图片，喂给纯文本模型 |
+| `eval/text-rendering-accuracy/text-to-image-render-text-eval.md` | 双 OCR 管线（WXGOCR + TextPecker）评测文生图渲染文字准确率 |
+| `data-pipeline/image-caption/image-caption-annotation-pipeline.md` | 两阶段 VLM 直标 + Rewrite 融合的图像 Caption 标注管线 |

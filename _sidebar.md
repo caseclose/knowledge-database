@@ -6,8 +6,11 @@
   - OpenCode
     - [输出截断与思考超时](agent/opencode/output-truncation-and-thinking-timeout.md)
 - Prompt Engineering
-  - [结构化 Image Captioning](prompt-engineering/structured-image-captioning.md)
+  - VLM Image Captioning
+    - [结构化 Image Captioning](prompt-engineering/vlm-image-captioning/structured-image-captioning.md)
 - Eval
-  - [文生图渲染文字评测](eval/text-to-image-render-text-eval.md)
+  - Text Rendering Accuracy
+    - [文生图渲染文字评测](eval/text-rendering-accuracy/text-to-image-render-text-eval.md)
 - Data Pipeline
-  - [图像 Caption 标注管线](data-pipeline/image-caption-annotation-pipeline.md)
+  - Image Caption
+    - [图像 Caption 标注管线](data-pipeline/image-caption/image-caption-annotation-pipeline.md)
