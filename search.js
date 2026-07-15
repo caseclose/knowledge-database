@@ -208,15 +208,18 @@ function kbSearchPlugin(hook) {
       '<button class="kb-cover-mode-btn" data-mode="exact">精确</button>' +
       "</div>" +
       '<div class="kb-cover-results"></div>';
-    var lastP = coverMain.querySelector("p:last-of-type");
+    var lastP = null;
+    for (var i = coverMain.children.length - 1; i >= 0; i--) {
+      if (coverMain.children[i].tagName === "P") {
+        lastP = coverMain.children[i];
+        break;
+      }
+    }
     if (lastP) {
       coverMain.insertBefore(div, lastP);
     } else {
       coverMain.appendChild(div);
     }
-    div.style.opacity = "0";
-    div.style.transition = "opacity 0.3s ease";
-    setTimeout(function () { div.style.opacity = "1"; }, 50);
     syncModeButtons();
 
     var input = div.querySelector(".kb-cover-input");
