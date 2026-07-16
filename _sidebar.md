@@ -5,6 +5,8 @@
 - Agent
   - OpenCode
     - [输出截断与思考超时](agent/opencode/output-truncation-and-thinking-timeout.md)
+  - GUI Agent
+    - [研究进展与 Grounding](agent/gui-agent/gui-agent-research-progress-and-grounding.md)
 - Prompt Engineering
   - VLM Image Captioning
     - [结构化 Image Captioning](prompt-engineering/vlm-image-captioning/structured-image-captioning.md)
@@ -14,6 +16,8 @@
 - Data Pipeline
   - Image Caption
     - [图像 Caption 标注管线](data-pipeline/image-caption/image-caption-annotation-pipeline.md)
+  - Image Dedup
+    - [SSCD + FAISS 图片查重](data-pipeline/image-dedup/sscd-faiss-image-deduplication.md)
 - Model Serving
   - vLLM
     - [双节点 GLM-5.2 TP=16 部署](model-serving/vllm/glm52-dual-node-tp16-deploy.md)

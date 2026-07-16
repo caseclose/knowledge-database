@@ -20,7 +20,9 @@ graph LR
     GPU --> K1["fuser vs pkill 释放显存"]
 
     Agent --> OC["opencode"]
+    Agent --> GUI["gui-agent"]
     OC --> K2["输出截断与思考超时"]
+    GUI --> K7["GUI Agent 研究进展与 Grounding"]
 
     PE --> PE1["vlm-image-captioning"]
     PE1 --> K3["结构化 Image Captioning"]
@@ -31,6 +33,9 @@ graph LR
     DP --> DP1["image-caption"]
     DP1 --> K5["图像 Caption 标注管线"]
 
+    DP --> DP2["image-dedup"]
+    DP2 --> K6["SSCD + FAISS 图片查重"]
+
     classDef root fill:#2c7be5,color:#fff,stroke:none
     classDef category fill:#eef4ff,color:#2c7be5,stroke:#2c7be5,stroke-width:2px
     classDef sub fill:#f8fafc,color:#4a5568,stroke:#cbd5e0,stroke-width:1px
@@ -38,14 +43,16 @@ graph LR
 
     class KB root
     class Linux,Agent,PE,Eval,DP category
-    class GPU,OC,PE1,EV1,DP1 sub
-    class K1,K2,K3,K4,K5 knowledge
+    class GPU,OC,GUI,PE1,EV1,DP1 sub
+    class K1,K2,K3,K4,K5,K6,K7 knowledge
 
     click K1 href "#/linux/gpu/fuser-vs-pkill-release-gpu-memory"
     click K2 href "#/agent/opencode/output-truncation-and-thinking-timeout"
     click K3 href "#/prompt-engineering/vlm-image-captioning/structured-image-captioning"
     click K4 href "#/eval/text-rendering-accuracy/text-to-image-render-text-eval"
     click K5 href "#/data-pipeline/image-caption/image-caption-annotation-pipeline"
+    click K6 href "#/data-pipeline/image-dedup/sscd-faiss-image-deduplication"
+    click K7 href "#/agent/gui-agent/gui-agent-research-progress-and-grounding"
 ```
 
 > 点击图中蓝色边框的知识条目可直接跳转阅读。
@@ -71,8 +78,10 @@ knowledge-database/
 │   └── gpu/
 │       └── fuser-vs-pkill-release-gpu-memory.md
 ├── agent/
-│   └── opencode/
-│       └── output-truncation-and-thinking-timeout.md
+│   ├── opencode/
+│   │   └── output-truncation-and-thinking-timeout.md
+│   └── gui-agent/
+│       └── gui-agent-research-progress-and-grounding.md
 ├── prompt-engineering/
 │   └── vlm-image-captioning/
 │       └── structured-image-captioning.md
@@ -80,8 +89,10 @@ knowledge-database/
 │   └── text-rendering-accuracy/
 │       └── text-to-image-render-text-eval.md
 ├── data-pipeline/
-│   └── image-caption/
-│       └── image-caption-annotation-pipeline.md
+│   ├── image-caption/
+│   │   └── image-caption-annotation-pipeline.md
+│   └── image-dedup/
+│       └── sscd-faiss-image-deduplication.md
 ├── model-serving/
 │   └── vllm/
 │       ├── glm52-dual-node-tp16-deploy.md
@@ -149,8 +160,10 @@ knowledge-database/
 |------|------|
 | `linux/gpu/fuser-vs-pkill-release-gpu-memory.md` | `pkill` 不释放 GPU 显存时，用 `fuser` 强制清理 |
 | `agent/opencode/output-truncation-and-thinking-timeout.md` | OpenCode 输出截断用精准续写，崩溃用 `--continue`，大任务分批 |
+| `agent/gui-agent/gui-agent-research-progress-and-grounding.md` | GUI Agent 从坐标定位到长程计算机使用的研究进展与 Grounding 方法 |
 | `prompt-engineering/vlm-image-captioning/structured-image-captioning.md` | 结构化 CoT Prompt 让 VLM 无损描述图片，喂给纯文本模型 |
 | `eval/text-rendering-accuracy/text-to-image-render-text-eval.md` | 双 OCR 管线（WXGOCR + TextPecker）评测文生图渲染文字准确率 |
 | `data-pipeline/image-caption/image-caption-annotation-pipeline.md` | 两阶段 VLM 直标 + Rewrite 融合的图像 Caption 标注管线 |
+| `data-pipeline/image-dedup/sscd-faiss-image-deduplication.md` | SSCD 特征 + FAISS 近邻搜索 + 并查集聚类的图片查重方案 |
 | `model-serving/vllm/glm52-dual-node-tp16-deploy.md` | 双节点 16×H20 TP=16 部署 GLM-5.2-FP8，ray 编排 + Codex CLI 接入 |
 | `model-serving/vllm/glm52-deploy-gotchas.md` | GLM-5.2 部署五坑（cu129 构建 / flashinfer 编译 / KV cache / 代理 / codex） |
