@@ -22,3 +22,6 @@
   - vLLM
     - [双节点 GLM-5.2 TP=16 部署](model-serving/vllm/glm52-dual-node-tp16-deploy.md)
     - [GLM-5.2 部署五坑](model-serving/vllm/glm52-deploy-gotchas.md)
+- Model Training
+  - On-Policy Distillation
+    - [OPD：从 LLM 到 Flow Matching](model-training/on-policy-distillation/opd-from-llm-to-flow-matching.md)

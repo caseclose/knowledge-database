@@ -15,6 +15,7 @@ graph LR
     KB --> PE["Prompt Engineering"]
     KB --> Eval["Eval"]
     KB --> DP["Data Pipeline"]
+    KB --> MT["Model Training"]
 
     Linux --> GPU["gpu"]
     GPU --> K1["fuser vs pkill 释放显存"]
@@ -36,15 +37,18 @@ graph LR
     DP --> DP2["image-dedup"]
     DP2 --> K6["SSCD + FAISS 图片查重"]
 
+    MT --> OPD["on-policy-distillation"]
+    OPD --> K8["OPD：从 LLM 到 Flow Matching"]
+
     classDef root fill:#2c7be5,color:#fff,stroke:none
     classDef category fill:#eef4ff,color:#2c7be5,stroke:#2c7be5,stroke-width:2px
     classDef sub fill:#f8fafc,color:#4a5568,stroke:#cbd5e0,stroke-width:1px
     classDef knowledge fill:#fff,color:#2c7be5,stroke:#2c7be5,stroke-width:2px
 
     class KB root
-    class Linux,Agent,PE,Eval,DP category
-    class GPU,OC,GUI,PE1,EV1,DP1 sub
-    class K1,K2,K3,K4,K5,K6,K7 knowledge
+    class Linux,Agent,PE,Eval,DP,MT category
+    class GPU,OC,GUI,PE1,EV1,DP1,OPD sub
+    class K1,K2,K3,K4,K5,K6,K7,K8 knowledge
 
     click K1 href "#/linux/gpu/fuser-vs-pkill-release-gpu-memory"
     click K2 href "#/agent/opencode/output-truncation-and-thinking-timeout"
@@ -53,6 +57,7 @@ graph LR
     click K5 href "#/data-pipeline/image-caption/image-caption-annotation-pipeline"
     click K6 href "#/data-pipeline/image-dedup/sscd-faiss-image-deduplication"
     click K7 href "#/agent/gui-agent/gui-agent-research-progress-and-grounding"
+    click K8 href "#/model-training/on-policy-distillation/opd-from-llm-to-flow-matching"
 ```
 
 > 点击图中蓝色边框的知识条目可直接跳转阅读。
@@ -97,6 +102,9 @@ knowledge-database/
 │   └── vllm/
 │       ├── glm52-dual-node-tp16-deploy.md
 │       └── glm52-deploy-gotchas.md
+├── model-training/
+│   └── on-policy-distillation/
+│       └── opd-from-llm-to-flow-matching.md
 └── ...
 ```
 
@@ -105,6 +113,7 @@ knowledge-database/
   - `eval`：模型能力评测方法，包括指标设计、评测管线、看板对比。
   - `data-pipeline`：数据标注与处理管线，涵盖标注策略、工程架构、质量控制。
   - `model-serving`：模型部署与推理服务，包括 vLLM 集群搭建、性能调优、故障排查。
+  - `model-training`：模型训练方法与范式，包括知识蒸馏、RL 后训练等。
 - **二级目录**是具体子主题，如 `gpu`、`opencode`、`vlm-image-captioning`、`text-rendering-accuracy`、`image-caption`、`vllm`。
 - 领域下可继续按子主题嵌套，如 `linux/gpu/`、`linux/shell/`。
 - 不要在根目录直接堆放 `.md` 文件，所有知识必须归入对应领域目录。
@@ -167,3 +176,4 @@ knowledge-database/
 | `data-pipeline/image-dedup/sscd-faiss-image-deduplication.md` | SSCD 特征 + FAISS 近邻搜索 + 并查集聚类的图片查重方案 |
 | `model-serving/vllm/glm52-dual-node-tp16-deploy.md` | 双节点 16×H20 TP=16 部署 GLM-5.2-FP8，ray 编排 + Codex CLI 接入 |
 | `model-serving/vllm/glm52-deploy-gotchas.md` | GLM-5.2 部署五坑（cu129 构建 / flashinfer 编译 / KV cache / 代理 / codex） |
+| `model-training/on-policy-distillation/opd-from-llm-to-flow-matching.md` | OPD（在策略蒸馏）：student 采样 + teacher 密集监督，从 LLM 到 Flow Matching 的 9 篇论文脉络 |
