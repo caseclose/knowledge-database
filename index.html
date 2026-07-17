@@ -249,26 +249,110 @@
     .sidebar {
       color: var(--sidebar-text);
       background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
     }
 
-    .sidebar ul li a {
-      color: var(--sidebar-text);
-    }
-
-    .sidebar ul li.active > a {
-      color: var(--accent);
-      font-weight: 600;
-    }
-
-    .sidebar-nav a.active {
-      color: var(--accent);
+    .sidebar .app-name {
+      margin: 24px 20px 16px;
+      padding: 0 0 16px;
+      border-bottom: 1px solid var(--border);
     }
 
     .app-name-link {
       color: var(--accent);
-      font-weight: 700;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .sidebar-nav {
+      padding: 0 12px 32px;
+    }
+
+    .sidebar-nav > ul > li {
+      margin: 4px 0;
+    }
+
+    .sidebar-nav li > a {
+      display: flex;
+      align-items: center;
+      min-height: 34px;
+      margin: 2px 0;
+      padding: 5px 10px;
+      border-radius: 7px;
+      color: var(--sidebar-text);
+      font-size: 14px;
+      line-height: 1.45;
+      transition: color 0.15s, background 0.15s, transform 0.15s;
+    }
+
+    .sidebar-nav li > a:hover {
+      color: var(--accent);
+      background: var(--bg-secondary);
+      transform: translateX(2px);
+    }
+
+    .sidebar-nav li.folder > a {
+      color: var(--text-heading);
+      font-weight: 650;
+    }
+
+    .sidebar-nav li.folder > a::before {
+      content: "▸";
+      width: 18px;
+      color: var(--text-muted);
+      font-size: 13px;
+      transition: transform 0.15s;
+    }
+
+    .sidebar-nav li.folder.open > a::before {
+      transform: rotate(90deg);
+      color: var(--accent);
+    }
+
+    .sidebar-nav li.file > a::before {
+      content: "•";
+      width: 18px;
+      color: var(--text-muted);
+      font-size: 18px;
+      line-height: 0;
+    }
+
+    .sidebar-nav li.active > a,
+    .sidebar-nav li.file > a.active {
+      color: var(--accent);
+      background: color-mix(in srgb, var(--accent) 12%, transparent);
+      box-shadow: inset 3px 0 0 var(--accent);
+      font-weight: 650;
+    }
+
+    .sidebar-nav ul ul {
+      border-left: 1px solid var(--border);
+      margin-left: 15px;
+      padding-left: 8px;
+    }
+
+    .sidebar-tools {
+      display: flex;
+      gap: 6px;
+      margin: -4px 20px 12px;
+    }
+
+    .sidebar-tool {
+      flex: 1;
+      padding: 5px 6px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--bg-secondary);
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 11px;
+    }
+
+    .sidebar-tool:hover {
+      border-color: var(--accent);
+      color: var(--accent);
     }
 
     .search input {
@@ -292,6 +376,77 @@
 
     .search h3 {
       color: var(--text-heading);
+    }
+
+
+    /* 侧边栏收起/展开 */
+    .sidebar,
+    .content {
+      transition: transform 0.25s ease, margin-left 0.25s ease;
+    }
+
+    body.sidebar-collapsed .sidebar {
+      transform: translateX(-100%);
+    }
+
+    body.sidebar-collapsed .content {
+      left: 0 !important;
+      margin-left: 0 !important;
+      width: 100% !important;
+    }
+
+    body.sidebar-collapsed .markdown-section {
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .sidebar-collapse-toggle {
+      position: fixed;
+      top: 50%;
+      left: 300px;
+      z-index: 21;
+      width: 24px;
+      height: 54px;
+      padding: 0;
+      border: 1px solid var(--border);
+      border-left: 0;
+      border-radius: 0 8px 8px 0;
+      background: var(--bg-secondary);
+      color: var(--text-muted);
+      cursor: pointer;
+      box-shadow: 2px 0 8px var(--shadow);
+      transform: translateY(-50%);
+      transition: left 0.25s ease, background 0.15s, color 0.15s;
+    }
+
+    .sidebar-collapse-toggle:hover {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    body.sidebar-collapsed .sidebar-collapse-toggle {
+      left: 0;
+      border-left: 1px solid var(--border);
+      border-radius: 0 8px 8px 0;
+    }
+
+    /* 桌面端使用右侧控件，移动端保留 Docsify 原生菜单按钮 */
+    .sidebar-toggle {
+      display: none;
+    }
+
+    body.sidebar-collapsed .sidebar-toggle {
+      display: none;
+    }
+
+    @media screen and (max-width: 768px) {
+      .sidebar-collapse-toggle {
+        display: none;
+      }
+
+      .sidebar-toggle {
+        display: block;
+      }
     }
 
     /* 封面页 */
@@ -618,6 +773,8 @@
       coverpage: true,
       loadSidebar: true,
       subMaxLevel: 3,
+      // 默认只展开当前目录，点击目录标题可展开或折叠子目录。
+      sidebarDisplayLevel: 1,
       auto2top: true,
       copyCode: {
         buttonText: "复制",
@@ -649,6 +806,43 @@
         },
         function (hook) {
           hook.mounted(function () {
+            var sidebarToggle = document.createElement("button");
+            sidebarToggle.className = "sidebar-collapse-toggle";
+            sidebarToggle.type = "button";
+            sidebarToggle.setAttribute("aria-label", "收起目录");
+            sidebarToggle.innerHTML = "‹";
+
+            function setSidebarCollapsed(collapsed) {
+              document.body.classList.toggle("sidebar-collapsed", collapsed);
+              sidebarToggle.innerHTML = collapsed ? "›" : "‹";
+              sidebarToggle.setAttribute("aria-label", collapsed ? "展开目录" : "收起目录");
+              sidebarToggle.title = collapsed ? "展开目录" : "收起目录";
+              try { localStorage.setItem("kb-sidebar-collapsed", collapsed ? "1" : "0"); } catch (e) {}
+            }
+
+            sidebarToggle.addEventListener("click", function () {
+              setSidebarCollapsed(!document.body.classList.contains("sidebar-collapsed"));
+            });
+            document.body.appendChild(sidebarToggle);
+
+            // Docsify 的左下角按钮也使用同一套状态，避免出现两个互相独立的开关。
+            function bindDocsifyToggle() {
+              var docsifyToggle = document.querySelector(".sidebar-toggle");
+              if (!docsifyToggle || docsifyToggle.dataset.kbBound) return;
+              docsifyToggle.dataset.kbBound = "1";
+              docsifyToggle.addEventListener("click", function (event) {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                setSidebarCollapsed(!document.body.classList.contains("sidebar-collapsed"));
+              }, true);
+            }
+            bindDocsifyToggle();
+            setTimeout(bindDocsifyToggle, 0);
+
+            try {
+              setSidebarCollapsed(localStorage.getItem("kb-sidebar-collapsed") === "1");
+            } catch (e) {}
+
             var btn = document.createElement("button");
             btn.className = "theme-toggle";
             btn.title = "切换深色/浅色模式";
@@ -663,6 +857,26 @@
               try { localStorage.setItem("kb-theme", next); } catch (e) {}
             });
             document.body.appendChild(btn);
+          });
+        },
+        function (hook) {
+          hook.doneEach(function () {
+            var sidebar = document.querySelector(".sidebar");
+            if (sidebar && !sidebar.querySelector(".sidebar-tools")) {
+              var tools = document.createElement("div");
+              tools.className = "sidebar-tools";
+              tools.innerHTML = '<button class="sidebar-tool" type="button" data-sidebar-action="expand">全部展开</button>' +
+                '<button class="sidebar-tool" type="button" data-sidebar-action="collapse">全部收起</button>';
+              sidebar.insertBefore(tools, sidebar.querySelector(".sidebar-nav"));
+              tools.addEventListener("click", function (event) {
+                var action = event.target.dataset.sidebarAction;
+                if (!action) return;
+                document.querySelectorAll(".sidebar-nav li.folder").forEach(function (item) {
+                  item.classList.toggle("open", action === "expand");
+                  item.classList.remove("collapse");
+                });
+              });
+            }
           });
         },
         kbSearchPlugin,
@@ -689,6 +903,7 @@
   <script src="//cdn.jsdelivr.net/npm/docsify-copy-code/dist/docsify-copy-code.min.js"></script>
   <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/zoom-image.min.js"></script>
   <script src="//cdn.jsdelivr.net/npm/docsify-pagination/dist/docsify-pagination.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/docsify-sidebar-collapse/dist/docsify-sidebar-collapse.min.js"></script>
 </body>
 
 </html>
