@@ -430,6 +430,11 @@
       border-radius: 0 8px 8px 0;
     }
 
+    /* 封面页没有侧栏，隐藏收起/展开按钮 */
+    body:has(section.cover.show) .sidebar-collapse-toggle {
+      display: none;
+    }
+
     /* 桌面端使用右侧控件，移动端保留 Docsify 原生菜单按钮 */
     .sidebar-toggle {
       display: none;
