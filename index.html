@@ -430,8 +430,8 @@
       border-radius: 0 8px 8px 0;
     }
 
-    /* 封面页没有侧栏，隐藏收起/展开按钮 */
-    body:has(section.cover.show) .sidebar-collapse-toggle {
+    /* 封面在视口内时隐藏收起/展开按钮（由 JS 按滚动位置切换 class） */
+    body.kb-cover-visible .sidebar-collapse-toggle {
       display: none;
     }
 
@@ -810,7 +810,23 @@
           });
         },
         function (hook) {
+          // 封面在首页路由下始终留在 DOM 中（下拉只是滚过它），所以按滚动位置判断封面是否真的在视口内：
+          // 能看到封面时隐藏折叠按钮，滚过封面或进入文档页后恢复显示。
+          function syncCoverToggleVisibility() {
+            var cover = document.querySelector("section.cover.show");
+            var coverInView = !!cover && cover.getBoundingClientRect().bottom > 0;
+            document.body.classList.toggle("kb-cover-visible", coverInView);
+          }
+
+          hook.doneEach(function () {
+            setTimeout(syncCoverToggleVisibility, 0);
+          });
+
           hook.mounted(function () {
+            window.addEventListener("scroll", syncCoverToggleVisibility, { passive: true });
+            window.addEventListener("resize", syncCoverToggleVisibility);
+            syncCoverToggleVisibility();
+
             var sidebarToggle = document.createElement("button");
             sidebarToggle.className = "sidebar-collapse-toggle";
             sidebarToggle.type = "button";
