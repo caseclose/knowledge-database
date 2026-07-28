@@ -18,6 +18,10 @@
     - [图像 Caption 标注管线](data-pipeline/image-caption/image-caption-annotation-pipeline.md)
   - Image Dedup
     - [SSCD + FAISS 图片查重](data-pipeline/image-dedup/sscd-faiss-image-deduplication.md)
+  - Synthetic Design Data
+    - [代码渲染信息图数据工厂](data-pipeline/synthetic-design-data/code-render-infographic-data-factory.md)
+    - [相关工作调研](data-pipeline/synthetic-design-data/code-render-related-work-survey.md)
+    - [v2 实现：多样性与编辑一致性](data-pipeline/synthetic-design-data/code-render-diversity-and-editing-implementation.md)
 - Model Serving
   - vLLM
     - [双节点 GLM-5.2 TP=16 部署](model-serving/vllm/glm52-dual-node-tp16-deploy.md)

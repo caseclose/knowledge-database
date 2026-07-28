@@ -37,6 +37,11 @@ graph LR
     DP --> DP2["image-dedup"]
     DP2 --> K6["SSCD + FAISS 图片查重"]
 
+    DP --> DP3["synthetic-design-data"]
+    DP3 --> K9["代码渲染信息图数据工厂"]
+    DP3 --> K10["相关工作调研"]
+    DP3 --> K11["v2 实现：多样性与编辑一致性"]
+
     MT --> OPD["on-policy-distillation"]
     OPD --> K8["OPD：从 LLM 到 Flow Matching"]
 
@@ -47,8 +52,8 @@ graph LR
 
     class KB root
     class Linux,Agent,PE,Eval,DP,MT category
-    class GPU,OC,GUI,PE1,EV1,DP1,OPD sub
-    class K1,K2,K3,K4,K5,K6,K7,K8 knowledge
+    class GPU,OC,GUI,PE1,EV1,DP1,DP3,OPD sub
+    class K1,K2,K3,K4,K5,K6,K7,K8,K9,K10,K11 knowledge
 
     click K1 href "#/linux/gpu/fuser-vs-pkill-release-gpu-memory"
     click K2 href "#/agent/opencode/output-truncation-and-thinking-timeout"
@@ -58,6 +63,9 @@ graph LR
     click K6 href "#/data-pipeline/image-dedup/sscd-faiss-image-deduplication"
     click K7 href "#/agent/gui-agent/gui-agent-research-progress-and-grounding"
     click K8 href "#/model-training/on-policy-distillation/opd-from-llm-to-flow-matching"
+    click K9 href "#/data-pipeline/synthetic-design-data/code-render-infographic-data-factory"
+    click K10 href "#/data-pipeline/synthetic-design-data/code-render-related-work-survey"
+    click K11 href "#/data-pipeline/synthetic-design-data/code-render-diversity-and-editing-implementation"
 ```
 
 > 点击图中蓝色边框的知识条目可直接跳转阅读。
@@ -96,8 +104,10 @@ knowledge-database/
 ├── data-pipeline/
 │   ├── image-caption/
 │   │   └── image-caption-annotation-pipeline.md
-│   └── image-dedup/
-│       └── sscd-faiss-image-deduplication.md
+│   ├── image-dedup/
+│   │   └── sscd-faiss-image-deduplication.md
+│   └── synthetic-design-data/
+│       └── code-render-infographic-data-factory.md
 ├── model-serving/
 │   └── vllm/
 │       ├── glm52-dual-node-tp16-deploy.md
@@ -174,6 +184,9 @@ knowledge-database/
 | `eval/text-rendering-accuracy/text-to-image-render-text-eval.md` | 双 OCR 管线（WXGOCR + TextPecker）评测文生图渲染文字准确率 |
 | `data-pipeline/image-caption/image-caption-annotation-pipeline.md` | 两阶段 VLM 直标 + Rewrite 融合的图像 Caption 标注管线 |
 | `data-pipeline/image-dedup/sscd-faiss-image-deduplication.md` | SSCD 特征 + FAISS 近邻搜索 + 并查集聚类的图片查重方案 |
+| `data-pipeline/synthetic-design-data/code-render-infographic-data-factory.md` | LLM 写代码→浏览器渲染→DOM 级标注，造信息图 T2I 图文对与像素级对齐编辑三元组 |
+| `data-pipeline/synthetic-design-data/code-render-related-work-survey.md` | 代码渲染造图数据六条线索调研，论证「代码即数据引擎」优于扩散+OCR 回标 |
+| `data-pipeline/synthetic-design-data/code-render-diversity-and-editing-implementation.md` | v2 落地：分层 style 采样/多画布/信息量四级/组件契约/多 code mode/交叉验证 |
 | `model-serving/vllm/glm52-dual-node-tp16-deploy.md` | 双节点 16×H20 TP=16 部署 GLM-5.2-FP8，ray 编排 + Codex CLI 接入 |
 | `model-serving/vllm/glm52-deploy-gotchas.md` | GLM-5.2 部署五坑（cu129 构建 / flashinfer 编译 / KV cache / 代理 / codex） |
 | `model-training/on-policy-distillation/opd-from-llm-to-flow-matching.md` | OPD（在策略蒸馏）：student 采样 + teacher 密集监督，从 LLM 到 Flow Matching 的 9 篇论文脉络 |
