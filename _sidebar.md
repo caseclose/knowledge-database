@@ -35,6 +35,8 @@
     - [Qwen3-VL 图像信息如何进入 LLM](model-architecture/multimodal/qwen3-vl-vision-injection.md)
   - Positional Encoding
     - [图像 vs 文本位置编码](model-architecture/positional-encoding/image-vs-text-positional-encoding.md)
+  - MoE
+    - [MoE 混合专家架构介绍](model-architecture/moe/moe-architecture-intro.md)
 - Model Training
   - On-Policy Distillation
     - [OPD：从 LLM 到 Flow Matching](model-training/on-policy-distillation/opd-from-llm-to-flow-matching.md)

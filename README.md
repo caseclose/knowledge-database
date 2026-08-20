@@ -60,6 +60,8 @@ graph LR
     MM --> K17["Qwen3-VL 图像信息进 LLM"]
     MA --> PEnc["positional-encoding"]
     PEnc --> K18["图像 vs 文本位置编码"]
+    MA --> MoE["moe"]
+    MoE --> K19["MoE 混合专家架构介绍"]
 
     classDef root fill:#2c7be5,color:#fff,stroke:none
     classDef category fill:#eef4ff,color:#2c7be5,stroke:#2c7be5,stroke-width:2px
@@ -68,8 +70,8 @@ graph LR
 
     class KB root
     class Linux,Agent,PE,Eval,DP,MT,MA category
-    class GPU,OC,GUI,CC,PE1,EV1,DP1,DP3,OPD,RLPT,IE,DT,MM,PEnc sub
-    class K1,K2,K3,K4,K5,K6,K7,K8,K9,K10,K11,K12,K13,K14,K15,K16,K17,K18 knowledge
+    class GPU,OC,GUI,CC,PE1,EV1,DP1,DP3,OPD,RLPT,IE,DT,MM,PEnc,MoE sub
+    class K1,K2,K3,K4,K5,K6,K7,K8,K9,K10,K11,K12,K13,K14,K15,K16,K17,K18,K19 knowledge
 
     click K1 href "#/linux/gpu/fuser-vs-pkill-release-gpu-memory"
     click K2 href "#/agent/opencode/output-truncation-and-thinking-timeout"
@@ -89,6 +91,7 @@ graph LR
     click K16 href "#/model-architecture/diffusion-transformer/mmdit-structure"
     click K17 href "#/model-architecture/multimodal/qwen3-vl-vision-injection"
     click K18 href "#/model-architecture/positional-encoding/image-vs-text-positional-encoding"
+    click K19 href "#/model-architecture/moe/moe-architecture-intro"
 ```
 
 > 点击图中蓝色边框的知识条目可直接跳转阅读。
@@ -219,4 +222,5 @@ knowledge-database/
 | `model-architecture/diffusion-transformer/mmdit-structure.md` | MMDiT：双流独立权重 + joint self-attention 取代 cross-attention，图文双向对齐 |
 | `model-architecture/multimodal/qwen3-vl-vision-injection.md` | Qwen3-VL：merger 压缩视觉 token + DeepStack 残差注入 LLM 前几层 + interleaved-MRoPE |
 | `model-architecture/positional-encoding/image-vs-text-positional-encoding.md` | 位置编码：文本 1D RoPE vs 图像 2D/axial RoPE，M-RoPE 统一多模态 t-h-w |
+| `model-architecture/moe/moe-architecture-intro.md` | MoE：路由器 + top-k 专家稀疏激活，负载均衡（无辅助损失偏置）、细粒度 + 共享专家 |
 | `agent/claude-code/tool-calling-and-mcp.md` | Claude Code：`while(tool_use)` agentic loop，内置工具与 MCP 同管线，Tool Search 控 token |
