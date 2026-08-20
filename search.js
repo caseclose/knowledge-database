@@ -6,6 +6,8 @@ function kbSearchPlugin(hook) {
   var currentMode = "fulltext";
   var savedQuery = "";
   var debounceTimer = null;
+  var catalogSortKey = "updated"; // "updated" | "created"
+  var catalogOrder = "desc"; // "desc"(新→旧) | "asc"(旧→新)
 
   function buildIndex() {
     if (indexed) return Promise.resolve();
@@ -33,12 +35,17 @@ function kbSearchPlugin(hook) {
             var title = titleMatch
               ? titleMatch[1].replace(/[*`]/g, "").trim()
               : link.textContent.trim();
+            var dateMatch = content.match(
+              /创建时间[：:]\s*([\d]{4}-[\d]{2}-[\d]{2})[\s\S]*?最新更新[：:]\s*([\d]{4}-[\d]{2}-[\d]{2})/
+            );
             searchIndex.push({
               title: title,
               path: filePath,
               content: content,
               contentLower: content.toLowerCase(),
               breadcrumb: filePath.replace(/\.md$/, "").replace(/\//g, " / "),
+              created: dateMatch ? dateMatch[1] : "",
+              updated: dateMatch ? dateMatch[2] : "",
             });
           })
           .catch(function () {})
@@ -87,11 +94,71 @@ function kbSearchPlugin(hook) {
     return highlight(snippet, query);
   }
 
+  function bindResultClicks(container) {
+    container.querySelectorAll(".kb-result-item").forEach(function (el) {
+      el.addEventListener("click", function () {
+        var p = this.getAttribute("data-path");
+        window.location.hash = "#/" + p.replace(/\.md$/, "");
+      });
+    });
+  }
+
+  function renderCatalog(container) {
+    if (!container) return;
+    if (!indexed || searchIndex.length === 0) {
+      container.innerHTML = '<div class="kb-search-hint">目录加载中…</div>';
+      return;
+    }
+    var items = searchIndex.slice().sort(function (a, b) {
+      var va = a[catalogSortKey] || "";
+      var vb = b[catalogSortKey] || "";
+      // 没有日期的排最后
+      if (va !== vb) {
+        if (!va) return 1;
+        if (!vb) return -1;
+        return catalogOrder === "asc" ? (va < vb ? -1 : 1) : (va < vb ? 1 : -1);
+      }
+      // 日期相同再按标题稳定排序
+      return a.title < b.title ? -1 : a.title > b.title ? 1 : 0;
+    });
+    container.innerHTML =
+      '<div class="kb-catalog-count">共 ' + items.length + " 篇知识</div>" +
+      items
+        .map(function (i) {
+          var dates =
+            '<div class="kb-result-dates">🕐 创建 ' +
+            escapeHtml(i.created || "—") +
+            " · 更新 " +
+            escapeHtml(i.updated || "—") +
+            "</div>";
+          return (
+            '<div class="kb-result-item" data-path="' + i.path + '">' +
+            '<div class="kb-result-title">' + escapeHtml(i.title) + "</div>" +
+            '<div class="kb-result-path">' + escapeHtml(i.breadcrumb) + "</div>" +
+            dates +
+            "</div>"
+          );
+        })
+        .join("");
+    bindResultClicks(container);
+  }
+
+  function refreshCatalogIfIdle() {
+    var input = document.querySelector(".kb-search-input");
+    var container = document.querySelector(".kb-search-results");
+    if (input && container && !input.value.trim()) renderCatalog(container);
+  }
+
   function doSearch(query, container) {
     if (!container) container = document.querySelector(".kb-search-results");
     if (!container) return;
     if (!query.trim()) {
-      container.innerHTML = '<div class="kb-search-hint">输入关键词搜索知识</div>';
+      // 侧栏：空查询时展示可排序目录；封面：保持提示。
+      if (container.classList.contains("kb-search-results")) {
+        renderCatalog(container);
+      } else {
+        container.innerHTML = '<div class="kb-search-hint">输入关键词搜索知识</div>';
+      }
       return;
     }
     var results = [];
@@ -157,17 +224,35 @@ function kbSearchPlugin(hook) {
       '<button class="kb-mode-btn" data-mode="fuzzy">模糊</button>' +
       '<button class="kb-mode-btn" data-mode="exact">精确</button>' +
       "</div>" +
-      '<div class="kb-search-results"><div class="kb-search-hint">输入关键词搜索知识</div></div>';
+      '<div class="kb-catalog-bar">' +
+      '<span class="kb-catalog-label">目录排序</span>' +
+      '<button class="kb-sort-btn" data-sortkey="updated">更新时间</button>' +
+      '<button class="kb-sort-btn" data-sortkey="created">创建时间</button>' +
+      '<button class="kb-sort-order" data-order="desc" title="切换升/降序">新→旧</button>' +
+      "</div>" +
+      '<div class="kb-search-results"><div class="kb-search-hint">目录加载中…</div></div>';
     sidebar.insertBefore(div, sidebar.firstChild);
 
     var input = div.querySelector(".kb-search-input");
     var modeBtns = div.querySelectorAll(".kb-mode-btn");
+    var sortBtns = div.querySelectorAll(".kb-sort-btn");
+    var orderBtn = div.querySelector(".kb-sort-order");
 
     input.value = savedQuery;
     modeBtns.forEach(function (btn) {
       btn.classList.toggle("active", btn.getAttribute("data-mode") === currentMode);
     });
-    if (savedQuery) doSearch(savedQuery);
+    sortBtns.forEach(function (btn) {
+      btn.classList.toggle("active", btn.getAttribute("data-sortkey") === catalogSortKey);
+    });
+    orderBtn.setAttribute("data-order", catalogOrder);
+    orderBtn.textContent = catalogOrder === "desc" ? "新→旧" : "旧→新";
+
+    if (savedQuery) {
+      doSearch(savedQuery);
+    } else {
+      buildIndex().then(refreshCatalogIfIdle);
+    }
 
     input.addEventListener("input", function () {
       savedQuery = this.value;
@@ -183,6 +268,23 @@ function kbSearchPlugin(hook) {
         syncModeButtons();
         if (input.value.trim()) doSearch(input.value);
       });
+    });
+
+    sortBtns.forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        catalogSortKey = this.getAttribute("data-sortkey");
+        sortBtns.forEach(function (b) {
+          b.classList.toggle("active", b === btn);
+        });
+        refreshCatalogIfIdle();
+      });
+    });
+
+    orderBtn.addEventListener("click", function () {
+      catalogOrder = catalogOrder === "desc" ? "asc" : "desc";
+      this.setAttribute("data-order", catalogOrder);
+      this.textContent = catalogOrder === "desc" ? "新→旧" : "旧→新";
+      refreshCatalogIfIdle();
     });
   }
 
@@ -246,6 +348,6 @@ function kbSearchPlugin(hook) {
   hook.doneEach(function () {
     renderSearchUI();
     renderCoverSearch();
-    buildIndex();
+    buildIndex().then(refreshCatalogIfIdle);
   });
 }
