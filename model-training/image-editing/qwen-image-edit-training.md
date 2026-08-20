@@ -1,5 +1,7 @@
 # Qwen-Image-Edit 是怎么训练出编辑能力的？
 
+> 创建时间：2026-08-20 ｜ 最新更新：2026-08-20
+
 Qwen-Image-Edit 是在 20B 的 Qwen-Image（MMDiT 文生图模型）之上扩展出的图像编辑模型。它的编辑能力不是靠额外的 ControlNet，而是靠**双编码输入 + 多任务训练对齐潜空间**。
 
 ## 骨干：复用 Qwen-Image 的 MMDiT
