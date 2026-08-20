@@ -16,14 +16,17 @@ graph LR
     KB --> Eval["Eval"]
     KB --> DP["Data Pipeline"]
     KB --> MT["Model Training"]
+    KB --> MA["Model Architecture"]
 
     Linux --> GPU["gpu"]
     GPU --> K1["fuser vs pkill 释放显存"]
 
     Agent --> OC["opencode"]
     Agent --> GUI["gui-agent"]
+    Agent --> CC["claude-code"]
     OC --> K2["输出截断与思考超时"]
     GUI --> K7["GUI Agent 研究进展与 Grounding"]
+    CC --> K12["Claude Code 工具调用（tool / MCP）"]
 
     PE --> PE1["vlm-image-captioning"]
     PE1 --> K3["结构化 Image Captioning"]
@@ -45,15 +48,28 @@ graph LR
     MT --> OPD["on-policy-distillation"]
     OPD --> K8["OPD：从 LLM 到 Flow Matching"]
 
+    MT --> RLPT["rl-post-training"]
+    RLPT --> K13["GRPO 的优势函数"]
+    RLPT --> K14["DAPO 与 GRPO 的区别"]
+    MT --> IE["image-editing"]
+    IE --> K15["Qwen-Image-Edit 编辑能力训练"]
+
+    MA --> DT["diffusion-transformer"]
+    DT --> K16["MMDiT 结构"]
+    MA --> MM["multimodal"]
+    MM --> K17["Qwen3-VL 图像信息进 LLM"]
+    MA --> PEnc["positional-encoding"]
+    PEnc --> K18["图像 vs 文本位置编码"]
+
     classDef root fill:#2c7be5,color:#fff,stroke:none
     classDef category fill:#eef4ff,color:#2c7be5,stroke:#2c7be5,stroke-width:2px
     classDef sub fill:#f8fafc,color:#4a5568,stroke:#cbd5e0,stroke-width:1px
     classDef knowledge fill:#fff,color:#2c7be5,stroke:#2c7be5,stroke-width:2px
 
     class KB root
-    class Linux,Agent,PE,Eval,DP,MT category
-    class GPU,OC,GUI,PE1,EV1,DP1,DP3,OPD sub
-    class K1,K2,K3,K4,K5,K6,K7,K8,K9,K10,K11 knowledge
+    class Linux,Agent,PE,Eval,DP,MT,MA category
+    class GPU,OC,GUI,CC,PE1,EV1,DP1,DP3,OPD,RLPT,IE,DT,MM,PEnc sub
+    class K1,K2,K3,K4,K5,K6,K7,K8,K9,K10,K11,K12,K13,K14,K15,K16,K17,K18 knowledge
 
     click K1 href "#/linux/gpu/fuser-vs-pkill-release-gpu-memory"
     click K2 href "#/agent/opencode/output-truncation-and-thinking-timeout"
@@ -66,6 +82,13 @@ graph LR
     click K9 href "#/data-pipeline/synthetic-design-data/code-render-infographic-data-factory"
     click K10 href "#/data-pipeline/synthetic-design-data/code-render-related-work-survey"
     click K11 href "#/data-pipeline/synthetic-design-data/code-render-diversity-and-editing-implementation"
+    click K12 href "#/agent/claude-code/tool-calling-and-mcp"
+    click K13 href "#/model-training/rl-post-training/grpo-advantage-function"
+    click K14 href "#/model-training/rl-post-training/dapo-vs-grpo"
+    click K15 href "#/model-training/image-editing/qwen-image-edit-training"
+    click K16 href "#/model-architecture/diffusion-transformer/mmdit-structure"
+    click K17 href "#/model-architecture/multimodal/qwen3-vl-vision-injection"
+    click K18 href "#/model-architecture/positional-encoding/image-vs-text-positional-encoding"
 ```
 
 > 点击图中蓝色边框的知识条目可直接跳转阅读。
@@ -190,3 +213,10 @@ knowledge-database/
 | `model-serving/vllm/glm52-dual-node-tp16-deploy.md` | 双节点 16×H20 TP=16 部署 GLM-5.2-FP8，ray 编排 + Codex CLI 接入 |
 | `model-serving/vllm/glm52-deploy-gotchas.md` | GLM-5.2 部署五坑（cu129 构建 / flashinfer 编译 / KV cache / 代理 / codex） |
 | `model-training/on-policy-distillation/opd-from-llm-to-flow-matching.md` | OPD（在策略蒸馏）：student 采样 + teacher 密集监督，从 LLM 到 Flow Matching 的 9 篇论文脉络 |
+| `model-training/rl-post-training/grpo-advantage-function.md` | GRPO 优势函数：组内奖励标准化 `A=(r−mean)/std` 取代 critic，std=0 时失去梯度 |
+| `model-training/rl-post-training/dapo-vs-grpo.md` | DAPO = GRPO + 四补丁（Clip-Higher / Dynamic Sampling / Token-Level Loss / Overlong Shaping）并去 KL |
+| `model-training/image-editing/qwen-image-edit-training.md` | Qwen-Image-Edit：VL 语义 + VAE 外观双编码，T2I/TI2I/I2I 多任务对齐潜空间 |
+| `model-architecture/diffusion-transformer/mmdit-structure.md` | MMDiT：双流独立权重 + joint self-attention 取代 cross-attention，图文双向对齐 |
+| `model-architecture/multimodal/qwen3-vl-vision-injection.md` | Qwen3-VL：merger 压缩视觉 token + DeepStack 残差注入 LLM 前几层 + interleaved-MRoPE |
+| `model-architecture/positional-encoding/image-vs-text-positional-encoding.md` | 位置编码：文本 1D RoPE vs 图像 2D/axial RoPE，M-RoPE 统一多模态 t-h-w |
+| `agent/claude-code/tool-calling-and-mcp.md` | Claude Code：`while(tool_use)` agentic loop，内置工具与 MCP 同管线，Tool Search 控 token |
