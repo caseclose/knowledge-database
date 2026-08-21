@@ -75,11 +75,18 @@ function kbSearchPlugin(hook) {
     return indexPromise;
   }
 
-  function parseTags(content) {
-    var match = content.match(/标签[：:]\s*([^\n]+)/);
+  function parseTagsFromMeta(text) {
+    var match = text.match(/标签[：:]\s*([^\n]+)/);
     if (!match) return [];
-    var raw = match[1].replace(/\s*[|｜].*$/, "").trim();
+    var raw = match[1].replace(/\s*[|｜].*$/, "").replace(/[`*_]/g, "").trim();
     return raw.split(/[、,，]/).map(function (t) { return t.trim(); }).filter(Boolean);
+  }
+
+  function parseTags(content) {
+    var head = content.split("\n").slice(0, 12).join("\n");
+    var match = head.match(/^>\s*.*标签[：:]\s*([^\n]+)/m);
+    if (!match) return [];
+    return parseTagsFromMeta("标签：" + match[1]);
   }
 
   function escapeHtml(t) {
@@ -111,7 +118,9 @@ function kbSearchPlugin(hook) {
   }
 
   function currentHashPath() {
-    return (window.location.hash || "").replace(/^#\/?/, "").replace(/\.md$/, "");
+    var hash = (window.location.hash || "").replace(/^#\/?/, "");
+    hash = hash.split("?")[0].split("&")[0];
+    return hash.replace(/\.md$/, "").replace(/\/$/, "");
   }
 
   function markActiveResult(container) {
@@ -129,6 +138,11 @@ function kbSearchPlugin(hook) {
         var target = event.target && event.target.nodeType === 1 ? event.target : event.target.parentElement;
         var tagEl = target && target.closest ? target.closest(".kb-tag") : null;
         if (tagEl && tagEl.getAttribute("data-tag")) {
+          var onCover = container.classList.contains("kb-cover-results");
+          if (onCover) {
+            var coverInput = document.querySelector(".kb-cover-input");
+            if (!coverInput || !coverInput.value.trim()) return;
+          }
           event.preventDefault();
           event.stopPropagation();
           setActiveTag(tagEl.getAttribute("data-tag"));
@@ -234,6 +248,11 @@ function kbSearchPlugin(hook) {
     var input = document.querySelector(".kb-search-input");
     if (input && input.value.trim()) doSearch(input.value);
     else refreshCatalogIfIdle();
+    var coverInput = document.querySelector(".kb-cover-input");
+    var coverResults = document.querySelector(".kb-cover-results");
+    if (coverInput && coverResults && coverInput.value.trim()) {
+      doSearch(coverInput.value, coverResults);
+    }
   }
 
   function renderTagBar() {
@@ -281,7 +300,7 @@ function kbSearchPlugin(hook) {
     if (text.indexOf("创建时间") === -1 && text.indexOf("标签") === -1) return;
     var created = (text.match(/创建时间[：:]\s*([\d]{4}-[\d]{2}-[\d]{2})/) || [])[1];
     var updated = (text.match(/最新更新[：:]\s*([\d]{4}-[\d]{2}-[\d]{2})/) || [])[1];
-    var tags = parseTags(text);
+    var tags = parseTagsFromMeta(text);
     quote.dataset.kbMetaDone = "1";
     var html = '<div class="kb-article-meta">';
     if (created) {
@@ -365,22 +384,27 @@ function kbSearchPlugin(hook) {
   function refreshCatalogIfIdle() {
     var input = document.querySelector(".kb-search-input");
     var container = document.querySelector(".kb-search-results");
-    if (input && container && !input.value.trim()) renderCatalog(container);
+    if (input && container && !input.value.trim()) {
+      setSearchingState(false);
+      renderCatalog(container);
+    }
   }
 
   function doSearch(query, container) {
     if (!container) container = document.querySelector(".kb-search-results");
     if (!container) return;
+    var isSidebar = container.classList.contains("kb-search-results");
     if (!query.trim()) {
-      setSearchingState(false);
-      if (container.classList.contains("kb-search-results")) {
+      if (isSidebar) setSearchingState(false);
+      if (isSidebar) {
         renderCatalog(container);
       } else {
         container.innerHTML = '<div class="kb-search-hint">输入关键词搜索知识</div>';
       }
       return;
     }
-    setSearchingState(true);
+    if (isSidebar) setSearchingState(true);
+    else setSearchingState(false);
     var results = [];
     if (currentMode === "title") {
       var q = query.toLowerCase();
@@ -598,6 +622,12 @@ function kbSearchPlugin(hook) {
       });
     });
   }
+
+  hook.mounted(function () {
+    window.addEventListener("hashchange", function () {
+      markActiveResult(document.querySelector(".kb-search-results"));
+    });
+  });
 
   hook.doneEach(function () {
     renderSearchUI();

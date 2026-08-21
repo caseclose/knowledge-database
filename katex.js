@@ -1,6 +1,10 @@
 function kbKatexPlugin(hook) {
   var slots = [];
 
+  function escapeHtml(t) {
+    return t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
   hook.beforeEach(function (markdown) {
     slots = [];
     var protectedBlocks = [];
@@ -33,18 +37,21 @@ function kbKatexPlugin(hook) {
   });
 
   hook.afterEach(function (html) {
-    if (!window.katex) return html;
     function renderSlot(item) {
-      try {
-        var math = window.katex.renderToString(item.tex, {
-          displayMode: item.display,
-          throwOnError: false,
-          output: "html",
-        });
-        return item.display ? '<div class="kb-math">' + math + "</div>" : math;
-      } catch (e) {
-        return item.tex;
+      if (window.katex) {
+        try {
+          var math = window.katex.renderToString(item.tex, {
+            displayMode: item.display,
+            throwOnError: false,
+            output: "html",
+          });
+          return item.display ? '<div class="kb-math">' + math + "</div>" : math;
+        } catch (e) {}
       }
+      var fallback = escapeHtml(item.tex);
+      return item.display
+        ? '<pre class="kb-math-fallback">' + fallback + "</pre>"
+        : '<code class="kb-math-fallback">' + fallback + "</code>";
     }
     html = html.replace(/<p>\s*@@KATEX(\d+)@@\s*<\/p>/g, function (_, i) {
       var item = slots[Number(i)];
