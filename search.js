@@ -489,10 +489,10 @@ function kbSearchPlugin(hook) {
     var div = document.createElement("div");
     div.className = "kb-search";
     div.innerHTML =
-      '<div class="kb-search-brand">' +
+      '<a class="kb-search-brand" href="#/" title="回到首页">' +
       '<img src="favicon.svg" class="kb-brand-logo" width="22" height="22" alt="" />' +
       '<span class="kb-brand-name">knowledge-database</span>' +
-      "</div>" +
+      "</a>" +
       '<label class="kb-search-box">' +
       SEARCH_ICON +
       '<input type="text" class="kb-search-input" placeholder="搜索知识..." autocomplete="off" />' +
