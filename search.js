@@ -196,19 +196,44 @@ function kbSearchPlugin(hook) {
     );
   }
 
+  function formatRelativeDate(iso) {
+    if (!iso) return { text: "—", title: "", recent: false };
+    var parts = String(iso).split("-");
+    if (parts.length !== 3) return { text: iso, title: iso, recent: false };
+    var d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+    if (isNaN(d.getTime())) return { text: iso, title: iso, recent: false };
+    var now = new Date();
+    var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    var diff = Math.round((today - d) / 86400000);
+    var text = iso;
+    if (diff === 0) text = "今天";
+    else if (diff === 1) text = "昨天";
+    else if (diff > 1 && diff < 14) text = diff + " 天前";
+    else if (diff === -1) text = "明天";
+    else if (diff < -1 && diff > -14) text = Math.abs(diff) + " 天后";
+    return { text: text, title: iso, recent: diff >= 0 && diff < 7 };
+  }
+
+  function dateMetaHtml(label, iso) {
+    var rel = formatRelativeDate(iso);
+    return (
+      '<span class="kb-meta-item' +
+      (rel.recent ? " is-recent" : "") +
+      '" title="' +
+      escapeHtml(label + (iso ? " " + iso : "")) +
+      '">' +
+      CLOCK_ICON +
+      "<span>" +
+      escapeHtml(label + " " + rel.text) +
+      "</span></span>"
+    );
+  }
+
   function renderDates(item) {
     return (
       '<div class="kb-result-dates">' +
-      '<span class="kb-meta-item" title="创建时间">' +
-      CLOCK_ICON +
-      "<span>创建 " +
-      escapeHtml(item.created || "—") +
-      "</span></span>" +
-      '<span class="kb-meta-item" title="更新时间">' +
-      CLOCK_ICON +
-      "<span>更新 " +
-      escapeHtml(item.updated || "—") +
-      "</span></span>" +
+      dateMetaHtml("创建", item.created) +
+      dateMetaHtml("更新", item.updated) +
       "</div>"
     );
   }
@@ -310,22 +335,8 @@ function kbSearchPlugin(hook) {
     var tags = parseTagsFromMeta(text);
     quote.dataset.kbMetaDone = "1";
     var html = '<div class="kb-article-meta">';
-    if (created) {
-      html +=
-        '<span class="kb-meta-item" title="创建时间">' +
-        CLOCK_ICON +
-        "<span>创建 " +
-        escapeHtml(created) +
-        "</span></span>";
-    }
-    if (updated) {
-      html +=
-        '<span class="kb-meta-item" title="更新时间">' +
-        CLOCK_ICON +
-        "<span>更新 " +
-        escapeHtml(updated) +
-        "</span></span>";
-    }
+    if (created) html += dateMetaHtml("创建", created);
+    if (updated) html += dateMetaHtml("更新", updated);
     tags.forEach(function (tag) {
       html +=
         '<button type="button" class="kb-tag" data-tag="' +
@@ -495,7 +506,9 @@ function kbSearchPlugin(hook) {
       "</a>" +
       '<label class="kb-search-box">' +
       SEARCH_ICON +
-      '<input type="text" class="kb-search-input" placeholder="搜索知识..." autocomplete="off" />' +
+      '<input type="text" class="kb-search-input" placeholder="搜索知识..." autocomplete="off" aria-label="搜索知识" />' +
+      '<kbd class="kb-search-kbd">/</kbd>' +
+      '<button type="button" class="kb-search-clear" hidden aria-label="清除搜索">×</button>' +
       "</label>" +
       '<div class="kb-search-toolbar">' +
       '<div class="kb-seg kb-search-modes" role="group" aria-label="搜索范围">' +
@@ -515,6 +528,7 @@ function kbSearchPlugin(hook) {
     sidebar.insertBefore(div, sidebar.firstChild);
 
     var input = div.querySelector(".kb-search-input");
+    var searchBox = div.querySelector(".kb-search-box");
     var modeBtns = div.querySelectorAll(".kb-mode-btn");
     var sortBtns = div.querySelectorAll(".kb-sort-btn");
     var orderBtn = div.querySelector(".kb-sort-order");
@@ -544,6 +558,10 @@ function kbSearchPlugin(hook) {
       debounceTimer = setTimeout(function () {
         buildIndex().then(function () { doSearch(savedQuery); });
       }, 200);
+    });
+    bindSearchField(searchBox, input, function () {
+      savedQuery = "";
+      doSearch("");
     });
 
     modeBtns.forEach(function (btn) {
@@ -586,12 +604,17 @@ function kbSearchPlugin(hook) {
     var div = document.createElement("div");
     div.className = "kb-cover-search";
     div.innerHTML =
-      '<input type="text" class="kb-cover-input" placeholder="搜索知识..." autocomplete="off" />' +
+      '<label class="kb-cover-box">' +
+      SEARCH_ICON +
+      '<input type="text" class="kb-cover-input" placeholder="搜索知识..." autocomplete="off" aria-label="封面搜索" />' +
+      '<kbd class="kb-search-kbd">/</kbd>' +
+      '<button type="button" class="kb-search-clear" hidden aria-label="清除搜索">×</button>' +
+      "</label>" +
       '<div class="kb-cover-modes">' +
-      '<button class="kb-cover-mode-btn" data-mode="title">标题</button>' +
-      '<button class="kb-cover-mode-btn active" data-mode="fulltext">全文</button>' +
-      '<button class="kb-cover-mode-btn" data-mode="fuzzy">模糊</button>' +
-      '<button class="kb-cover-mode-btn" data-mode="exact">精确</button>' +
+      '<button class="kb-cover-mode-btn" type="button" data-mode="title">标题</button>' +
+      '<button class="kb-cover-mode-btn active" type="button" data-mode="fulltext">全文</button>' +
+      '<button class="kb-cover-mode-btn" type="button" data-mode="fuzzy">模糊</button>' +
+      '<button class="kb-cover-mode-btn" type="button" data-mode="exact">精确</button>' +
       "</div>" +
       '<div class="kb-cover-results"></div>';
     var lastP = null;
@@ -609,6 +632,7 @@ function kbSearchPlugin(hook) {
     syncModeButtons();
 
     var input = div.querySelector(".kb-cover-input");
+    var coverBox = div.querySelector(".kb-cover-box");
     var modeBtns = div.querySelectorAll(".kb-cover-mode-btn");
     var results = div.querySelector(".kb-cover-results");
 
@@ -618,6 +642,10 @@ function kbSearchPlugin(hook) {
       debounceTimer = setTimeout(function () {
         buildIndex().then(function () { doSearch(savedQuery, results); });
       }, 200);
+    });
+    bindSearchField(coverBox, input, function () {
+      savedQuery = "";
+      doSearch("", results);
     });
 
     modeBtns.forEach(function (btn) {
@@ -629,7 +657,87 @@ function kbSearchPlugin(hook) {
     });
   }
 
+  function syncSearchField(box, input) {
+    if (!box || !input) return;
+    var hasValue = !!input.value;
+    box.classList.toggle("is-active", hasValue || document.activeElement === input);
+    var clearBtn = box.querySelector(".kb-search-clear");
+    if (clearBtn) clearBtn.hidden = !hasValue;
+  }
+
+  function bindSearchField(box, input, onClear) {
+    if (!box || !input) return;
+    input.addEventListener("focus", function () { syncSearchField(box, input); });
+    input.addEventListener("blur", function () { syncSearchField(box, input); });
+    input.addEventListener("input", function () { syncSearchField(box, input); });
+    var clearBtn = box.querySelector(".kb-search-clear");
+    if (clearBtn) {
+      clearBtn.addEventListener("mousedown", function (event) {
+        event.preventDefault();
+      });
+      clearBtn.addEventListener("click", function () {
+        input.value = "";
+        syncSearchField(box, input);
+        input.focus();
+        if (onClear) onClear();
+      });
+    }
+    syncSearchField(box, input);
+  }
+
+  function isTypingTarget(el) {
+    if (!el) return false;
+    var tag = (el.tagName || "").toLowerCase();
+    if (tag === "input" || tag === "textarea" || tag === "select") return true;
+    return !!el.isContentEditable;
+  }
+
+  function bindSearchHotkeys() {
+    if (document.documentElement.dataset.kbHotkeys) return;
+    document.documentElement.dataset.kbHotkeys = "1";
+    document.addEventListener("keydown", function (event) {
+      if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.altKey) return;
+      var sidebarInput = document.querySelector(".kb-search-input");
+      var coverInput = document.querySelector(".kb-cover-input");
+      var coverVisible = document.body.classList.contains("kb-cover-visible");
+      var active = document.activeElement;
+
+      if (event.key === "Escape") {
+        if (active === sidebarInput && sidebarInput.value) {
+          sidebarInput.value = "";
+          savedQuery = "";
+          doSearch("");
+          syncSearchField(sidebarInput.closest(".kb-search-box"), sidebarInput);
+          event.preventDefault();
+        } else if (active === coverInput && coverInput.value) {
+          coverInput.value = "";
+          savedQuery = "";
+          doSearch("", document.querySelector(".kb-cover-results"));
+          syncSearchField(coverInput.closest(".kb-cover-box"), coverInput);
+          event.preventDefault();
+        } else if (active === sidebarInput || active === coverInput) {
+          active.blur();
+        }
+        return;
+      }
+
+      if (event.key === "/" && !isTypingTarget(active)) {
+        event.preventDefault();
+        var target = coverVisible && coverInput ? coverInput : sidebarInput;
+        if (!coverVisible && document.body.classList.contains("sidebar-collapsed")) {
+          var toggle = document.querySelector(".sidebar-collapse-toggle");
+          if (toggle) toggle.click();
+        }
+        if (target) {
+          target.focus();
+          target.select();
+        }
+      }
+    });
+  }
+
   hook.mounted(function () {
+    bindSearchHotkeys();
     window.addEventListener("hashchange", function () {
       markActiveResult(document.querySelector(".kb-search-results"));
     });

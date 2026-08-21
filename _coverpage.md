@@ -1,3 +1,5 @@
+![logo](favicon.svg)
+
 # knowledge-database
 
 > 个人技术知识库 · 沉淀经验，检索复用
