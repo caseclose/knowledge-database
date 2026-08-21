@@ -411,7 +411,6 @@ function kbSearchPlugin(hook) {
       return;
     }
     if (isSidebar) setSearchingState(true);
-    else setSearchingState(false);
     var results = [];
     if (currentMode === "title") {
       var q = query.toLowerCase();
