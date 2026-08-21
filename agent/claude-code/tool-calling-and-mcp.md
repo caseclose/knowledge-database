@@ -38,7 +38,7 @@ harness 是「agentic 外壳」：提供工具、上下文管理、执行环境�
 
 ## MCP：把外部服务接进同一套管线
 
-**MCP（Model Context Protocol）** 是 Anthropic 的开放协议，让 Claude Code 连接外部服务（数据库、GitHub、浏览器、语义检索等）。要点：
+**MCP（Model Context Protocol）** 是把外部服务（数据库、GitHub、浏览器、语义检索等）接进 Claude Code 的开放协议；协议角色、原语和传输见 [MCP 是什么](../mcp/model-context-protocol-intro.md)。要点：
 
 - MCP 工具在**运行时动态注册**，与内置工具走**完全相同**的执行管线（校验→权限→执行→回填），模型看来没有区别；
 - **代价是 token 开销大**：每个 MCP server 都把工具定义塞进上下文，5 个 server 可能吃掉 ~55K token（约 28% 的 200K 窗口）。

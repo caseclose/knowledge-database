@@ -9,6 +9,8 @@
     - [研究进展与 Grounding](agent/gui-agent/gui-agent-research-progress-and-grounding.md)
   - Claude Code
     - [工具调用模式（tool / MCP）](agent/claude-code/tool-calling-and-mcp.md)
+  - MCP
+    - [模型上下文协议介绍](agent/mcp/model-context-protocol-intro.md)
 - Prompt Engineering
   - VLM Image Captioning
     - [结构化 Image Captioning](prompt-engineering/vlm-image-captioning/structured-image-captioning.md)
