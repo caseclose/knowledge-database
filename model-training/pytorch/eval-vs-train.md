@@ -23,10 +23,10 @@ BatchNorm 训练态：
 
 $$
 \hat{x} = \frac{x - \mu_B}{\sqrt{\sigma_B^2 + \epsilon}}, \quad
-\mu_{\mathrm{run}} \leftarrow (1-\momentum)\,\mu_{\mathrm{run}} + \momentum\,\mu_B
+\mu_{\mathrm{run}} \leftarrow (1-m)\,\mu_{\mathrm{run}} + m\,\mu_B
 $$
 
-推理态用 $\mu_{\mathrm{run}}, \sigma_{\mathrm{run}}$ 代替 $\mu_B, \sigma_B$。所以 **eval 里 BN 输出是确定的**；train 里同一张图、不同 batch 同伴，BN 结果会变。
+推理态用 $\mu_{\mathrm{run}}, \sigma_{\mathrm{run}}$ 代替 $\mu_B, \sigma_B$（$m$ 即 BN 的 `momentum`，默认 0.1）。所以 **eval 里 BN 输出是确定的**；train 里同一张图、不同 batch 同伴，BN 结果会变。
 
 ## 和 `no_grad` / `requires_grad` 不是一回事
 
