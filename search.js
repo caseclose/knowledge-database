@@ -15,6 +15,33 @@ function kbSearchPlugin(hook) {
   var SEARCH_ICON =
     '<svg class="kb-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>';
 
+  function normalizeDocPath(href) {
+    if (!href || href.startsWith("http") || href.startsWith("mailto:")) return "";
+    href = String(href).trim();
+    if (href.indexOf("#/") === 0) href = href.slice(2);
+    else if (href.charAt(0) === "#") return "";
+    var cut = href.search(/[?#]/);
+    if (cut !== -1) href = href.slice(0, cut);
+    href = href.replace(/^\.\//, "").replace(/^\//, "").replace(/\/$/, "");
+    if (!href || href === "README") return "README.md";
+    if (!/\.md$/i.test(href)) href += ".md";
+    return href;
+  }
+
+  function pathToHash(filePath) {
+    var route = normalizeDocPath(filePath).replace(/\.md$/i, "");
+    if (!route || route === "README") return "#/";
+    return "#/" + route;
+  }
+
+  function parseDates(content) {
+    var head = String(content || "").split("\n").slice(0, 12).join("\n");
+    return {
+      created: (head.match(/创建时间[：:]\s*([\d]{4}-[\d]{2}-[\d]{2})/) || [])[1] || "",
+      updated: (head.match(/最新更新[：:]\s*([\d]{4}-[\d]{2}-[\d]{2})/) || [])[1] || "",
+    };
+  }
+
   function buildIndex() {
     if (indexed) return Promise.resolve();
     if (indexPromise) return indexPromise;
@@ -22,37 +49,32 @@ function kbSearchPlugin(hook) {
     var promises = [];
     var seen = {};
     links.forEach(function (link) {
-      var href = link.getAttribute("href");
-      if (!href || href.startsWith("http") || seen[href]) return;
-      var filePath;
-      if (href.startsWith("#/")) {
-        filePath = href.substring(2) + ".md";
-      } else if (href.endsWith(".md")) {
-        filePath = href;
-      } else {
-        return;
-      }
-      seen[href] = true;
+      if (link.closest(".app-sub-sidebar")) return;
+      var filePath = normalizeDocPath(link.getAttribute("href"));
+      if (!filePath || seen[filePath]) return;
+      seen[filePath] = true;
+      var fallbackTitle = (link.textContent || "").replace(/\s+/g, " ").trim();
       promises.push(
         fetch(filePath)
-          .then(function (r) { return r.text(); })
+          .then(function (r) {
+            if (!r.ok) throw new Error("fetch " + filePath);
+            return r.text();
+          })
           .then(function (content) {
             var titleMatch = content.match(/^#\s+(.+)$/m);
             var title = titleMatch
               ? titleMatch[1].replace(/[*`]/g, "").trim()
-              : link.textContent.trim();
-            var dateMatch = content.match(
-              /创建时间[：:]\s*([\d]{4}-[\d]{2}-[\d]{2})[\s\S]*?最新更新[：:]\s*([\d]{4}-[\d]{2}-[\d]{2})/
-            );
+              : fallbackTitle;
+            var dates = parseDates(content);
             var tags = parseTags(content);
             searchIndex.push({
               title: title,
               path: filePath,
               content: content,
               contentLower: content.toLowerCase(),
-              breadcrumb: filePath.replace(/\.md$/, "").replace(/\//g, " / "),
-              created: dateMatch ? dateMatch[1] : "",
-              updated: dateMatch ? dateMatch[2] : "",
+              breadcrumb: filePath.replace(/\.md$/i, "").replace(/\//g, " / "),
+              created: dates.created,
+              updated: dates.updated,
               tags: tags,
               tagsText: tags.join(" "),
             });
@@ -127,14 +149,16 @@ function kbSearchPlugin(hook) {
   function currentHashPath() {
     var hash = (window.location.hash || "").replace(/^#\/?/, "");
     hash = hash.split("?")[0].split("&")[0];
-    return hash.replace(/\.md$/, "").replace(/\/$/, "");
+    hash = hash.replace(/\.md$/i, "").replace(/\/$/, "");
+    if (!hash || hash === "README") return "README";
+    return hash;
   }
 
   function markActiveResult(container) {
     if (!container) return;
     var hash = currentHashPath();
     container.querySelectorAll(".kb-result-item").forEach(function (el) {
-      var p = (el.getAttribute("data-path") || "").replace(/\.md$/, "");
+      var p = normalizeDocPath(el.getAttribute("data-path")).replace(/\.md$/i, "") || "README";
       el.classList.toggle("is-active", p === hash);
     });
   }
@@ -156,7 +180,7 @@ function kbSearchPlugin(hook) {
           return;
         }
         var p = this.getAttribute("data-path");
-        window.location.hash = "#/" + p.replace(/\.md$/, "");
+        window.location.hash = pathToHash(p);
       });
     });
     markActiveResult(container);
