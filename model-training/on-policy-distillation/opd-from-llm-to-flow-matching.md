@@ -1,6 +1,6 @@
 # OPD：从 LLM 到 Flow Matching 的在策略蒸馏（On-Policy Distillation）
 
-> 创建时间：2026-07-17 ｜ 最新更新：2026-07-17
+> 创建时间：2026-07-17 ｜ 最新更新：2026-08-21
 
 > 本文梳理 On-Policy Distillation（OPD，在策略蒸馏）这一训练范式的核心思想、相比传统 KD 与 RL 的优势，以及它 2023 年在 LLM 上发源、2026 年迁移到 Flow Matching 图像生成模型的论文脉络（共 9 篇，截至 2026-07）。DiffusionOPD 论文中也称之为 Online Policy Distillation。
 
@@ -13,8 +13,13 @@ OPD 的做法是：**让 student 自己采样轨迹，teacher 在 student 的轨
 ```text
 x (prompt) → student 采样 y ~ π_student(·|x)
            → teacher 对 y 的每个位置 t 给出分布 p_teacher(·|y_<t, x)
-           → loss = Σ_t D(p_teacher ‖ p_student)   # D 可取 reverse KL / forward KL / JSD 等
 ```
+
+$$
+\mathcal{L}=\sum_t D\bigl(p_{\mathrm{teacher}}(\cdot\mid y_{<t},x) \,\Vert\, p_{\mathrm{student}}(\cdot\mid y_{<t},x)\bigr)
+$$
+
+其中 $D$ 可取 reverse KL / forward KL / JSD 等。
 
 与 RL（如 RLVR）相比，OPD 每个 token 都有监督信号，而非只在序列结尾拿到一个稀疏 reward，信号密度高、方差低、token 效率高；与 off-policy KD 相比，它直接优化 student 真实生成分布下的行为。
 

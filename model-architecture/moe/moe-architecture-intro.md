@@ -1,6 +1,6 @@
 # MoE（混合专家）架构介绍
 
-> 创建时间：2026-08-20 ｜ 最新更新：2026-08-20
+> 创建时间：2026-08-20 ｜ 最新更新：2026-08-21 ｜ 标签：面试
 
 MoE（Mixture of Experts，混合专家）是当下大模型「参数量暴涨但算力可控」的核心手段。核心思想一句话：**把一个大 FFN 拆成很多个「专家」，每个 token 只激活其中少数几个**，从而在总参数量很大的同时，单 token 的实际计算量（激活参数）很小。代表：Mixtral、DeepSeek-V3、Qwen3、Llama 4、GPT-oss。
 
@@ -34,14 +34,17 @@ token ──► │ Router / Gating（打分 + top-k）│
 
 ### 1. 路由（Routing / Gating）
 
-对每个 token 的隐藏向量 `x` 与每个专家算亲和度分数（`s = x·W_e`），取分数最高的 **top-k** 个专家，用 softmax 归一化其分数作为加权权重：
+对每个 token 的隐藏向量 $x$ 与每个专家算亲和度分数（$s = x\cdot W_e$），取分数最高的 **top-k** 个专家，用 softmax 归一化其分数作为加权权重：
 
 ```
 scores = x @ W_router.T          # [num_experts]
 idx    = topk(scores, k)         # 选 k 个专家
 weight = softmax(scores[idx])    # 门控权重
-y      = Σ weight_i · Expert_i(x)
 ```
+
+$$
+y = \sum_{i \in \mathrm{top}\text{-}k} w_i \cdot \mathrm{Expert}_i(x)
+$$
 
 - **top-1 / top-2** 是最常见配置（Mixtral 8×7B 用 top-2）。
 - 只有被选中的专家参与前向/反向，其余不计算。
@@ -51,7 +54,7 @@ y      = Σ weight_i · Expert_i(x)
 MoE 最大的坑是 **routing collapse**：路由退化到只用少数几个专家，其余闲置，既浪费参数又降效率（专家并行时更糟）。两类解法：
 
 - **辅助损失（auxiliary loss）**：GShard/Switch 用一项额外 loss 惩罚不均衡，逼路由把 token 摊平。缺点：太强会**损害主任务性能**。
-- **无辅助损失（aux-loss-free，DeepSeek-V3）**：给每个专家一个**动态偏置 `b_i`**，只在 top-k **选择**时加到分数上（`s_i + b_i`），但**不进入最终门控权重**；每步根据专家负载调整 `b_i`（过载减、欠载加）。既均衡又不牺牲性能。
+- **无辅助损失（aux-loss-free，DeepSeek-V3）**：给每个专家一个**动态偏置 $b_i$**，只在 top-k **选择**时加到分数上（$s_i + b_i$），但**不进入最终门控权重**；每步根据专家负载调整 $b_i$（过载减、欠载加）。既均衡又不牺牲性能。
 
 ### 3. 现代改进：细粒度专家 + 共享专家（DeepSeekMoE）
 
