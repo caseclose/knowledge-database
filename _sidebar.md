@@ -7,6 +7,8 @@
     - [输出截断与思考超时](agent/opencode/output-truncation-and-thinking-timeout.md)
   - GUI Agent
     - [研究进展与 Grounding](agent/gui-agent/gui-agent-research-progress-and-grounding.md)
+  - Claude Code
+    - [工具调用模式（tool / MCP）](agent/claude-code/tool-calling-and-mcp.md)
 - Prompt Engineering
   - VLM Image Captioning
     - [结构化 Image Captioning](prompt-engineering/vlm-image-captioning/structured-image-captioning.md)
@@ -26,6 +28,20 @@
   - vLLM
     - [双节点 GLM-5.2 TP=16 部署](model-serving/vllm/glm52-dual-node-tp16-deploy.md)
     - [GLM-5.2 部署五坑](model-serving/vllm/glm52-deploy-gotchas.md)
+- Model Architecture
+  - Diffusion Transformer
+    - [MMDiT 结构](model-architecture/diffusion-transformer/mmdit-structure.md)
+  - Multimodal
+    - [Qwen3-VL 图像信息如何进入 LLM](model-architecture/multimodal/qwen3-vl-vision-injection.md)
+  - Positional Encoding
+    - [图像 vs 文本位置编码](model-architecture/positional-encoding/image-vs-text-positional-encoding.md)
+  - MoE
+    - [MoE 混合专家架构介绍](model-architecture/moe/moe-architecture-intro.md)
 - Model Training
   - On-Policy Distillation
     - [OPD：从 LLM 到 Flow Matching](model-training/on-policy-distillation/opd-from-llm-to-flow-matching.md)
+  - RL Post-Training
+    - [GRPO 的优势函数](model-training/rl-post-training/grpo-advantage-function.md)
+    - [DAPO 与 GRPO 的区别](model-training/rl-post-training/dapo-vs-grpo.md)
+  - Image Editing
+    - [Qwen-Image-Edit 编辑能力训练](model-training/image-editing/qwen-image-edit-training.md)

@@ -1,5 +1,7 @@
 # 如何双节点 16×H20 部署 GLM-5.2-FP8 并接 Codex CLI？
 
+> 创建时间：2026-07-14 ｜ 最新更新：2026-07-14
+
 ## 背景
 
 GLM-5.2 是智谱最新旗舰模型，704 GB block-fp8 权重（`GlmMoeDsaForCausalLM`，MoE + DSA 架构），官方 vLLM 推理 recipe 推荐 v0.23+ 搭配 `transformers >= 5.12`。单机 8×H20（每卡 95 GiB）权重就占 93% 显存，KV cache 几乎为 0，必须双节点。
