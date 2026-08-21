@@ -1,6 +1,6 @@
 # DAPO 和 GRPO 的区别
 
-> 创建时间：2026-08-20 ｜ 最新更新：2026-08-21
+> 创建时间：2026-08-20 ｜ 最新更新：2026-08-21 ｜ 标签：面试
 
 DAPO（Decoupled Clip and Dynamic sAmpling Policy Optimization，字节 2025 开源）不是全新算法，而是在 **GRPO 基础上打的四个补丁**，用来解决大规模 long-CoT RL 里 GRPO 暴露的熵坍缩、奖励噪声、训练不稳等问题。在 Qwen2.5-32B 上把 AIME 2024 从朴素 GRPO 的约 30 分提到 **50 分**（且用更少步数超过 DeepSeek-R1-Zero-Qwen-32B 的 47 分）。
 

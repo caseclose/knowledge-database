@@ -8,6 +8,7 @@ function kbSearchPlugin(hook) {
   var debounceTimer = null;
   var catalogSortKey = "updated"; // "updated" | "created"
   var catalogOrder = "desc"; // "desc"(新→旧) | "asc"(旧→新)
+  var activeTag = "";
 
   var CLOCK_ICON =
     '<svg class="kb-meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>';
@@ -43,6 +44,7 @@ function kbSearchPlugin(hook) {
             var dateMatch = content.match(
               /创建时间[：:]\s*([\d]{4}-[\d]{2}-[\d]{2})[\s\S]*?最新更新[：:]\s*([\d]{4}-[\d]{2}-[\d]{2})/
             );
+            var tags = parseTags(content);
             searchIndex.push({
               title: title,
               path: filePath,
@@ -51,6 +53,8 @@ function kbSearchPlugin(hook) {
               breadcrumb: filePath.replace(/\.md$/, "").replace(/\//g, " / "),
               created: dateMatch ? dateMatch[1] : "",
               updated: dateMatch ? dateMatch[2] : "",
+              tags: tags,
+              tagsText: tags.join(" "),
             });
           })
           .catch(function () {})
@@ -59,7 +63,7 @@ function kbSearchPlugin(hook) {
     indexPromise = Promise.all(promises).then(function () {
       if (window.Fuse) {
         fuse = new Fuse(searchIndex, {
-          keys: ["title", "content"],
+          keys: ["title", "content", "tagsText"],
           includeScore: true,
           threshold: 0.35,
           ignoreLocation: true,
@@ -69,6 +73,13 @@ function kbSearchPlugin(hook) {
       indexed = true;
     });
     return indexPromise;
+  }
+
+  function parseTags(content) {
+    var match = content.match(/标签[：:]\s*([^\n]+)/);
+    if (!match) return [];
+    var raw = match[1].replace(/\s*[|｜].*$/, "").trim();
+    return raw.split(/[、,，]/).map(function (t) { return t.trim(); }).filter(Boolean);
   }
 
   function escapeHtml(t) {
@@ -114,7 +125,15 @@ function kbSearchPlugin(hook) {
 
   function bindResultClicks(container) {
     container.querySelectorAll(".kb-result-item").forEach(function (el) {
-      el.addEventListener("click", function () {
+      el.addEventListener("click", function (event) {
+        var target = event.target && event.target.nodeType === 1 ? event.target : event.target.parentElement;
+        var tagEl = target && target.closest ? target.closest(".kb-tag") : null;
+        if (tagEl && tagEl.getAttribute("data-tag")) {
+          event.preventDefault();
+          event.stopPropagation();
+          setActiveTag(tagEl.getAttribute("data-tag"));
+          return;
+        }
         var p = this.getAttribute("data-path");
         window.location.hash = "#/" + p.replace(/\.md$/, "");
       });
@@ -133,6 +152,25 @@ function kbSearchPlugin(hook) {
           return '<span class="kb-crumb">' + escapeHtml(part) + "</span>";
         })
         .join('<span class="kb-crumb-sep" aria-hidden="true">/</span>') +
+      "</div>"
+    );
+  }
+
+  function renderTags(item) {
+    if (!item.tags || !item.tags.length) return "";
+    return (
+      '<div class="kb-result-tags">' +
+      item.tags
+        .map(function (tag) {
+          return (
+            '<span class="kb-tag" data-tag="' +
+            escapeHtml(tag) +
+            '">' +
+            escapeHtml(tag) +
+            "</span>"
+          );
+        })
+        .join("") +
       "</div>"
     );
   }
@@ -163,9 +201,123 @@ function kbSearchPlugin(hook) {
       titleHtml +
       "</div>" +
       renderBreadcrumb(item.path) +
+      renderTags(item) +
       (extraHtml || "") +
       "</button>"
     );
+  }
+
+  function applyTagFilter(items) {
+    if (!activeTag) return items;
+    return items.filter(function (item) {
+      return item.tags && item.tags.indexOf(activeTag) !== -1;
+    });
+  }
+
+  function collectTags() {
+    var counts = {};
+    searchIndex.forEach(function (item) {
+      (item.tags || []).forEach(function (tag) {
+        counts[tag] = (counts[tag] || 0) + 1;
+      });
+    });
+    return Object.keys(counts)
+      .sort()
+      .map(function (name) {
+        return { name: name, count: counts[name] };
+      });
+  }
+
+  function setActiveTag(tag) {
+    activeTag = tag === activeTag ? "" : tag || "";
+    renderTagBar();
+    var input = document.querySelector(".kb-search-input");
+    if (input && input.value.trim()) doSearch(input.value);
+    else refreshCatalogIfIdle();
+  }
+
+  function renderTagBar() {
+    var bar = document.querySelector(".kb-tag-bar");
+    if (!bar) return;
+    var tags = collectTags();
+    if (!tags.length) {
+      bar.hidden = true;
+      bar.innerHTML = "";
+      return;
+    }
+    bar.hidden = false;
+    bar.innerHTML =
+      '<button type="button" class="kb-tag-filter' +
+      (!activeTag ? " is-active" : "") +
+      '" data-tag="">全部</button>' +
+      tags
+        .map(function (tag) {
+          return (
+            '<button type="button" class="kb-tag-filter' +
+            (activeTag === tag.name ? " is-active" : "") +
+            '" data-tag="' +
+            escapeHtml(tag.name) +
+            '">' +
+            escapeHtml(tag.name) +
+            '<span class="kb-tag-count">' +
+            tag.count +
+            "</span></button>"
+          );
+        })
+        .join("");
+    bar.querySelectorAll(".kb-tag-filter").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        setActiveTag(this.getAttribute("data-tag") || "");
+      });
+    });
+  }
+
+  function enhanceArticleMeta() {
+    var section = document.querySelector(".markdown-section");
+    if (!section) return;
+    var quote = section.querySelector("blockquote");
+    if (!quote || quote.dataset.kbMetaDone) return;
+    var text = (quote.textContent || "").replace(/\s+/g, " ").trim();
+    if (text.indexOf("创建时间") === -1 && text.indexOf("标签") === -1) return;
+    var created = (text.match(/创建时间[：:]\s*([\d]{4}-[\d]{2}-[\d]{2})/) || [])[1];
+    var updated = (text.match(/最新更新[：:]\s*([\d]{4}-[\d]{2}-[\d]{2})/) || [])[1];
+    var tags = parseTags(text);
+    quote.dataset.kbMetaDone = "1";
+    var html = '<div class="kb-article-meta">';
+    if (created) {
+      html +=
+        '<span class="kb-meta-item" title="创建时间">' +
+        CLOCK_ICON +
+        "<span>创建 " +
+        escapeHtml(created) +
+        "</span></span>";
+    }
+    if (updated) {
+      html +=
+        '<span class="kb-meta-item" title="更新时间">' +
+        CLOCK_ICON +
+        "<span>更新 " +
+        escapeHtml(updated) +
+        "</span></span>";
+    }
+    tags.forEach(function (tag) {
+      html +=
+        '<button type="button" class="kb-tag" data-tag="' +
+        escapeHtml(tag) +
+        '">' +
+        escapeHtml(tag) +
+        "</button>";
+    });
+    html += "</div>";
+    quote.outerHTML = html;
+    var meta = section.querySelector(".kb-article-meta");
+    if (meta) {
+      meta.querySelectorAll(".kb-tag").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          setActiveTag(this.getAttribute("data-tag") || "");
+        });
+      });
+    }
   }
 
   function setSearchingState(isSearching) {
@@ -179,7 +331,7 @@ function kbSearchPlugin(hook) {
       container.innerHTML = '<div class="kb-search-hint">目录加载中…</div>';
       return;
     }
-    var items = searchIndex.slice().sort(function (a, b) {
+    var items = applyTagFilter(searchIndex.slice()).sort(function (a, b) {
       var va = a[catalogSortKey] || "";
       var vb = b[catalogSortKey] || "";
       if (va !== vb) {
@@ -189,8 +341,17 @@ function kbSearchPlugin(hook) {
       }
       return a.title < b.title ? -1 : a.title > b.title ? 1 : 0;
     });
+    if (!items.length) {
+      container.innerHTML =
+        '<div class="kb-search-hint">' +
+        (activeTag ? "这个标签下没有知识" : "暂无知识") +
+        "</div>";
+      return;
+    }
     container.innerHTML =
-      '<div class="kb-catalog-count">共 <strong>' +
+      '<div class="kb-catalog-count">' +
+      (activeTag ? escapeHtml(activeTag) + " · " : "") +
+      "共 <strong>" +
       items.length +
       "</strong> 篇知识</div>" +
       items
@@ -224,7 +385,10 @@ function kbSearchPlugin(hook) {
     if (currentMode === "title") {
       var q = query.toLowerCase();
       results = searchIndex
-        .filter(function (i) { return i.title.toLowerCase().indexOf(q) !== -1; })
+        .filter(function (i) {
+          return i.title.toLowerCase().indexOf(q) !== -1 ||
+            (i.tagsText && i.tagsText.toLowerCase().indexOf(q) !== -1);
+        })
         .map(function (i) { return { item: i, snippet: highlight(i.title, query) }; });
     } else if (currentMode === "fulltext") {
       var qf = query.toLowerCase();
@@ -242,12 +406,17 @@ function kbSearchPlugin(hook) {
         .filter(function (i) { return i.content.indexOf(query) !== -1; })
         .map(function (i) { return { item: i, snippet: getSnippet(i.content, query, 100) }; });
     }
+    results = results.filter(function (r) {
+      return !activeTag || (r.item.tags && r.item.tags.indexOf(activeTag) !== -1);
+    });
     if (results.length === 0) {
       container.innerHTML = '<div class="kb-search-hint">没有找到结果</div>';
       return;
     }
     container.innerHTML =
-      '<div class="kb-catalog-count">找到 <strong>' +
+      '<div class="kb-catalog-count">' +
+      (activeTag ? escapeHtml(activeTag) + " · " : "") +
+      "找到 <strong>" +
       results.length +
       "</strong> 条结果</div>" +
       results
@@ -310,6 +479,7 @@ function kbSearchPlugin(hook) {
       '<button class="kb-sort-btn" type="button" data-sortkey="created">创建</button>' +
       '<button class="kb-sort-order" type="button" data-order="desc" title="切换升/降序">新→旧</button>' +
       "</div>" +
+      '<div class="kb-tag-bar" hidden></div>' +
       "</div>" +
       '<div class="kb-search-results"><div class="kb-search-hint">目录加载中…</div></div>';
     sidebar.insertBefore(div, sidebar.firstChild);
@@ -332,7 +502,10 @@ function kbSearchPlugin(hook) {
     if (savedQuery) {
       doSearch(savedQuery);
     } else {
-      buildIndex().then(refreshCatalogIfIdle);
+      buildIndex().then(function () {
+        renderTagBar();
+        refreshCatalogIfIdle();
+      });
     }
 
     input.addEventListener("input", function () {
@@ -430,7 +603,11 @@ function kbSearchPlugin(hook) {
     renderSearchUI();
     wrapNavPanel();
     renderCoverSearch();
-    buildIndex().then(refreshCatalogIfIdle);
+    enhanceArticleMeta();
+    buildIndex().then(function () {
+      renderTagBar();
+      refreshCatalogIfIdle();
+    });
     markActiveResult(document.querySelector(".kb-search-results"));
   });
 }

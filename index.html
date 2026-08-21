@@ -230,6 +230,94 @@
       color: var(--blockquote-text);
     }
 
+    .kb-article-meta {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px 12px;
+      margin: 0 0 1.6em;
+      padding: 10px 14px;
+      background: var(--blockquote-bg);
+      border-left: 4px solid var(--accent);
+      border-radius: 0 10px 10px 0;
+      color: var(--blockquote-text);
+      font-size: 13px;
+    }
+
+    .kb-article-meta .kb-meta-item {
+      font-size: 13px;
+    }
+
+    .kb-tag-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 2px;
+    }
+
+    .kb-tag-filter {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--bg);
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .kb-tag-filter:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .kb-tag-filter.is-active {
+      background: color-mix(in srgb, var(--accent) 12%, var(--bg));
+      border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+      color: var(--accent);
+    }
+
+    .kb-tag-count {
+      font-size: 10px;
+      font-weight: 700;
+      opacity: 0.75;
+    }
+
+    .kb-result-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin: 0 0 6px;
+    }
+
+    .kb-tag {
+      display: inline-flex;
+      align-items: center;
+      padding: 1px 7px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      background: color-mix(in srgb, #d97706 14%, var(--bg));
+      color: #b45309;
+      border: 1px solid color-mix(in srgb, #d97706 30%, var(--border));
+      cursor: pointer;
+    }
+
+    [data-theme="dark"] .kb-tag {
+      background: color-mix(in srgb, #fbbf24 16%, transparent);
+      color: #fbbf24;
+      border-color: color-mix(in srgb, #fbbf24 28%, var(--border));
+    }
+
+    .kb-article-meta .kb-tag {
+      font-size: 12px;
+      padding: 2px 9px;
+    }
+
     .markdown-section table {
       display: table;
       width: 100%;
@@ -967,6 +1055,12 @@
 
     .kb-cover-results .kb-crumb-sep {
       color: rgba(255, 255, 255, 0.28);
+    }
+
+    .kb-cover-results .kb-tag {
+      background: rgba(251, 191, 36, 0.18);
+      color: #fde68a;
+      border-color: rgba(251, 191, 36, 0.28);
     }
 
     .kb-cover-results .kb-result-snippet {

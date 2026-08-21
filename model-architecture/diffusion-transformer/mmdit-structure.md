@@ -1,6 +1,6 @@
 # MMDiT 结构：为什么用 joint attention 取代 cross-attention？
 
-> 创建时间：2026-08-20 ｜ 最新更新：2026-08-20
+> 创建时间：2026-08-20 ｜ 最新更新：2026-08-21 ｜ 标签：面试
 
 MMDiT（MultiModal Diffusion Transformer）是 Stable Diffusion 3 提出、FLUX / CogVideoX / HunyuanVideo 等广泛沿用的文生图/视频骨干。它把「文本引导图像生成」从 U-Net + cross-attention 的老范式，换成了纯 Transformer + **联合自注意力（joint attention）**。
 

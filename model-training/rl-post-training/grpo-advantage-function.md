@@ -1,6 +1,6 @@
 # GRPO 的优势函数是怎么算的？
 
-> 创建时间：2026-08-20 ｜ 最新更新：2026-08-21
+> 创建时间：2026-08-20 ｜ 最新更新：2026-08-21 ｜ 标签：面试
 
 GRPO（Group Relative Policy Optimization，DeepSeek 提出）是当前 LLM RL 后训练的主流算法之一。它相对 PPO 最大的改动，就是**扔掉了 critic（value 网络）**，改用「一组样本内部互相比较」来估计优势（advantage）。
 
