@@ -1065,6 +1065,12 @@
       margin: 2px 0 10px 10px !important;
       padding: 4px 0 4px 10px !important;
       border-left: 2px solid color-mix(in srgb, var(--accent) 42%, var(--border));
+      display: none !important;
+    }
+
+    .sidebar .sidebar-nav .app-sub-sidebar.open,
+    .sidebar .sidebar-nav li.open > .app-sub-sidebar {
+      display: block !important;
     }
 
     .sidebar-nav .app-sub-sidebar .app-sub-sidebar {
@@ -1904,10 +1910,16 @@
               tools.addEventListener("click", function (event) {
                 var btn = event.target.closest("[data-sidebar-action]");
                 if (!btn) return;
-                var action = btn.getAttribute("data-sidebar-action");
+                var expand = btn.getAttribute("data-sidebar-action") === "expand";
                 document.querySelectorAll(".sidebar-nav li.folder").forEach(function (item) {
-                  item.classList.toggle("open", action === "expand");
+                  item.classList.toggle("open", expand);
                   item.classList.remove("collapse");
+                });
+                document.querySelectorAll(".sidebar-nav li.file:has(> .app-sub-sidebar)").forEach(function (item) {
+                  item.classList.toggle("open", expand);
+                });
+                document.querySelectorAll(".sidebar-nav ul.app-sub-sidebar").forEach(function (ul) {
+                  ul.classList.toggle("open", expand);
                 });
               });
             }
