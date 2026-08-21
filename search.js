@@ -9,6 +9,11 @@ function kbSearchPlugin(hook) {
   var catalogSortKey = "updated"; // "updated" | "created"
   var catalogOrder = "desc"; // "desc"(新→旧) | "asc"(旧→新)
 
+  var CLOCK_ICON =
+    '<svg class="kb-meta-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>';
+  var SEARCH_ICON =
+    '<svg class="kb-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>';
+
   function buildIndex() {
     if (indexed) return Promise.resolve();
     if (indexPromise) return indexPromise;
@@ -94,6 +99,19 @@ function kbSearchPlugin(hook) {
     return highlight(snippet, query);
   }
 
+  function currentHashPath() {
+    return (window.location.hash || "").replace(/^#\/?/, "").replace(/\.md$/, "");
+  }
+
+  function markActiveResult(container) {
+    if (!container) return;
+    var hash = currentHashPath();
+    container.querySelectorAll(".kb-result-item").forEach(function (el) {
+      var p = (el.getAttribute("data-path") || "").replace(/\.md$/, "");
+      el.classList.toggle("is-active", p === hash);
+    });
+  }
+
   function bindResultClicks(container) {
     container.querySelectorAll(".kb-result-item").forEach(function (el) {
       el.addEventListener("click", function () {
@@ -101,6 +119,58 @@ function kbSearchPlugin(hook) {
         window.location.hash = "#/" + p.replace(/\.md$/, "");
       });
     });
+    markActiveResult(container);
+  }
+
+  function renderBreadcrumb(filePath) {
+    var parts = filePath.replace(/\.md$/, "").split("/").filter(Boolean);
+    if (parts.length > 1) parts = parts.slice(0, -1);
+    if (!parts.length) return "";
+    return (
+      '<div class="kb-result-path">' +
+      parts
+        .map(function (part) {
+          return '<span class="kb-crumb">' + escapeHtml(part) + "</span>";
+        })
+        .join('<span class="kb-crumb-sep" aria-hidden="true">/</span>') +
+      "</div>"
+    );
+  }
+
+  function renderDates(item) {
+    return (
+      '<div class="kb-result-dates">' +
+      '<span class="kb-meta-item" title="创建时间">' +
+      CLOCK_ICON +
+      "<span>创建 " +
+      escapeHtml(item.created || "—") +
+      "</span></span>" +
+      '<span class="kb-meta-item" title="更新时间">' +
+      CLOCK_ICON +
+      "<span>更新 " +
+      escapeHtml(item.updated || "—") +
+      "</span></span>" +
+      "</div>"
+    );
+  }
+
+  function renderResultCard(item, titleHtml, extraHtml) {
+    return (
+      '<button type="button" class="kb-result-item" data-path="' +
+      item.path +
+      '">' +
+      '<div class="kb-result-title">' +
+      titleHtml +
+      "</div>" +
+      renderBreadcrumb(item.path) +
+      (extraHtml || "") +
+      "</button>"
+    );
+  }
+
+  function setSearchingState(isSearching) {
+    var root = document.querySelector(".kb-search");
+    if (root) root.classList.toggle("is-searching", isSearching);
   }
 
   function renderCatalog(container) {
@@ -112,32 +182,20 @@ function kbSearchPlugin(hook) {
     var items = searchIndex.slice().sort(function (a, b) {
       var va = a[catalogSortKey] || "";
       var vb = b[catalogSortKey] || "";
-      // 没有日期的排最后
       if (va !== vb) {
         if (!va) return 1;
         if (!vb) return -1;
         return catalogOrder === "asc" ? (va < vb ? -1 : 1) : (va < vb ? 1 : -1);
       }
-      // 日期相同再按标题稳定排序
       return a.title < b.title ? -1 : a.title > b.title ? 1 : 0;
     });
     container.innerHTML =
-      '<div class="kb-catalog-count">共 ' + items.length + " 篇知识</div>" +
+      '<div class="kb-catalog-count">共 <strong>' +
+      items.length +
+      "</strong> 篇知识</div>" +
       items
         .map(function (i) {
-          var dates =
-            '<div class="kb-result-dates">🕐 创建 ' +
-            escapeHtml(i.created || "—") +
-            " · 更新 " +
-            escapeHtml(i.updated || "—") +
-            "</div>";
-          return (
-            '<div class="kb-result-item" data-path="' + i.path + '">' +
-            '<div class="kb-result-title">' + escapeHtml(i.title) + "</div>" +
-            '<div class="kb-result-path">' + escapeHtml(i.breadcrumb) + "</div>" +
-            dates +
-            "</div>"
-          );
+          return renderResultCard(i, escapeHtml(i.title), renderDates(i));
         })
         .join("");
     bindResultClicks(container);
@@ -153,7 +211,7 @@ function kbSearchPlugin(hook) {
     if (!container) container = document.querySelector(".kb-search-results");
     if (!container) return;
     if (!query.trim()) {
-      // 侧栏：空查询时展示可排序目录；封面：保持提示。
+      setSearchingState(false);
       if (container.classList.contains("kb-search-results")) {
         renderCatalog(container);
       } else {
@@ -161,6 +219,7 @@ function kbSearchPlugin(hook) {
       }
       return;
     }
+    setSearchingState(true);
     var results = [];
     if (currentMode === "title") {
       var q = query.toLowerCase();
@@ -187,28 +246,42 @@ function kbSearchPlugin(hook) {
       container.innerHTML = '<div class="kb-search-hint">没有找到结果</div>';
       return;
     }
-    container.innerHTML = results
-      .map(function (r) {
-        var titleHtml = currentMode === "title" ? r.snippet : escapeHtml(r.item.title);
-        var snippetHtml =
-          currentMode !== "title"
-            ? '<div class="kb-result-snippet">' + r.snippet + "</div>"
-            : "";
-        return (
-          '<div class="kb-result-item" data-path="' + r.item.path + '">' +
-          '<div class="kb-result-title">' + titleHtml + "</div>" +
-          '<div class="kb-result-path">' + escapeHtml(r.item.breadcrumb) + "</div>" +
-          snippetHtml +
-          "</div>"
-        );
-      })
-      .join("");
-    container.querySelectorAll(".kb-result-item").forEach(function (el) {
-      el.addEventListener("click", function () {
-        var p = this.getAttribute("data-path");
-        window.location.hash = "#/" + p.replace(/\.md$/, "");
-      });
-    });
+    container.innerHTML =
+      '<div class="kb-catalog-count">找到 <strong>' +
+      results.length +
+      "</strong> 条结果</div>" +
+      results
+        .map(function (r) {
+          var titleHtml = currentMode === "title" ? r.snippet : escapeHtml(r.item.title);
+          var snippetHtml =
+            currentMode !== "title"
+              ? '<div class="kb-result-snippet">' + r.snippet + "</div>"
+              : "";
+          return renderResultCard(r.item, titleHtml, snippetHtml);
+        })
+        .join("");
+    bindResultClicks(container);
+  }
+
+  function wrapNavPanel() {
+    var sidebar = document.querySelector(".sidebar");
+    if (!sidebar) return;
+    var nav = sidebar.querySelector(".sidebar-nav");
+    var tools = sidebar.querySelector(".sidebar-tools");
+    if (!nav) return;
+    var panel = sidebar.querySelector(".kb-nav-panel");
+    if (!panel) {
+      panel = document.createElement("div");
+      panel.className = "kb-nav-panel";
+      var header = document.createElement("div");
+      header.className = "kb-nav-header";
+      header.innerHTML = '<span class="kb-nav-title">目录</span>';
+      panel.appendChild(header);
+      sidebar.appendChild(panel);
+    }
+    var header = panel.querySelector(".kb-nav-header");
+    if (tools && header && tools.parentNode !== header) header.appendChild(tools);
+    if (nav.parentNode !== panel) panel.appendChild(nav);
   }
 
   function renderSearchUI() {
@@ -217,18 +290,26 @@ function kbSearchPlugin(hook) {
     var div = document.createElement("div");
     div.className = "kb-search";
     div.innerHTML =
-      '<input type="text" class="kb-search-input" placeholder="搜索知识..." autocomplete="off" />' +
-      '<div class="kb-search-modes">' +
-      '<button class="kb-mode-btn" data-mode="title">标题</button>' +
-      '<button class="kb-mode-btn active" data-mode="fulltext">全文</button>' +
-      '<button class="kb-mode-btn" data-mode="fuzzy">模糊</button>' +
-      '<button class="kb-mode-btn" data-mode="exact">精确</button>' +
+      '<div class="kb-search-brand">' +
+      '<img src="favicon.svg" class="kb-brand-logo" width="22" height="22" alt="" />' +
+      '<span class="kb-brand-name">knowledge-database</span>' +
       "</div>" +
-      '<div class="kb-catalog-bar">' +
-      '<span class="kb-catalog-label">目录排序</span>' +
-      '<button class="kb-sort-btn" data-sortkey="updated">更新时间</button>' +
-      '<button class="kb-sort-btn" data-sortkey="created">创建时间</button>' +
-      '<button class="kb-sort-order" data-order="desc" title="切换升/降序">新→旧</button>' +
+      '<label class="kb-search-box">' +
+      SEARCH_ICON +
+      '<input type="text" class="kb-search-input" placeholder="搜索知识..." autocomplete="off" />' +
+      "</label>" +
+      '<div class="kb-search-toolbar">' +
+      '<div class="kb-seg kb-search-modes" role="group" aria-label="搜索范围">' +
+      '<button class="kb-mode-btn" type="button" data-mode="title">标题</button>' +
+      '<button class="kb-mode-btn active" type="button" data-mode="fulltext">全文</button>' +
+      '<button class="kb-mode-btn" type="button" data-mode="fuzzy">模糊</button>' +
+      '<button class="kb-mode-btn" type="button" data-mode="exact">精确</button>' +
+      "</div>" +
+      '<div class="kb-seg kb-catalog-bar" role="group" aria-label="目录排序">' +
+      '<button class="kb-sort-btn" type="button" data-sortkey="updated">更新</button>' +
+      '<button class="kb-sort-btn" type="button" data-sortkey="created">创建</button>' +
+      '<button class="kb-sort-order" type="button" data-order="desc" title="切换升/降序">新→旧</button>' +
+      "</div>" +
       "</div>" +
       '<div class="kb-search-results"><div class="kb-search-hint">目录加载中…</div></div>';
     sidebar.insertBefore(div, sidebar.firstChild);
@@ -347,7 +428,9 @@ function kbSearchPlugin(hook) {
 
   hook.doneEach(function () {
     renderSearchUI();
+    wrapNavPanel();
     renderCoverSearch();
     buildIndex().then(refreshCatalogIfIdle);
+    markActiveResult(document.querySelector(".kb-search-results"));
   });
 }
