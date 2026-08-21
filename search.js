@@ -79,7 +79,9 @@ function kbSearchPlugin(hook) {
     var match = text.match(/标签[：:]\s*([^\n]+)/);
     if (!match) return [];
     var raw = match[1].replace(/\s*[|｜].*$/, "").replace(/[`*_]/g, "").trim();
-    return raw.split(/[、,，]/).map(function (t) { return t.trim(); }).filter(Boolean);
+    return raw.split(/[、,，]/).map(function (t) { return t.trim(); }).filter(function (t) {
+      return /^[\u4e00-\u9fffA-Za-z0-9_+.-]{1,20}$/.test(t);
+    });
   }
 
   function parseTags(content) {
@@ -90,7 +92,12 @@ function kbSearchPlugin(hook) {
   }
 
   function escapeHtml(t) {
-    return t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    return String(t)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
   }
 
   function highlight(text, query) {
@@ -209,7 +216,7 @@ function kbSearchPlugin(hook) {
   function renderResultCard(item, titleHtml, extraHtml) {
     return (
       '<button type="button" class="kb-result-item" data-path="' +
-      item.path +
+      escapeHtml(item.path) +
       '">' +
       '<div class="kb-result-title">' +
       titleHtml +

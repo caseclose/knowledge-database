@@ -2,7 +2,12 @@ function kbKatexPlugin(hook) {
   var slots = [];
 
   function escapeHtml(t) {
-    return t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    return String(t)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
   }
 
   hook.beforeEach(function (markdown) {
