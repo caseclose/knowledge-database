@@ -646,7 +646,7 @@
 
     .kb-search-results::-webkit-scrollbar,
     .kb-nav-panel .sidebar-nav::-webkit-scrollbar {
-      width: 6px;
+      width: 8px;
     }
 
     .kb-search-results::-webkit-scrollbar-thumb,
@@ -850,8 +850,9 @@
     .kb-split-x {
       position: fixed;
       top: 0;
-      left: calc(var(--sidebar-width) - 6px);
-      width: 14px;
+      /* 贴在侧栏外缘，不要盖住侧栏内部的滚动条 */
+      left: var(--sidebar-width);
+      width: 12px;
       height: 100%;
       z-index: 22;
       cursor: col-resize;
@@ -875,7 +876,7 @@
       position: absolute;
       top: 18%;
       bottom: 18%;
-      left: 6px;
+      left: 0;
       width: 3px;
       border-radius: 99px;
       background: color-mix(in srgb, var(--text-muted) 45%, transparent);
