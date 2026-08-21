@@ -124,8 +124,8 @@ Action 2: Finish[Tree of Thoughts]
 
 面试常追问「就这些？循环不会炸吗」。至少要能答这几条：
 
-1. **`max_steps`**：没有 `Finish` 就停，避免 Thought/Action 死循环。
-2. **`stop=["Observation:"]`**：不让模型自己编 Observation；观察必须来自工具。
+1. `max_steps`：没有 `Finish` 就停，避免 Thought/Action 死循环。
+2. `stop=["Observation:"]`：不让模型自己编 Observation；观察必须来自工具。
 3. **解析失败**：输出不合 `Action: Tool[arg]` 时，把「格式错误」当成 Observation 再给一次机会，不要直接崩。
 4. **未知工具**：同样写成 Observation，让下一步 Thought 改选。
 5. **Observation 截断**：检索结果截到几百字，否则 scratchpad 指数膨胀。
