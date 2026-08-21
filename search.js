@@ -539,7 +539,7 @@ function kbSearchPlugin(hook) {
       sidebar.insertBefore(splitY, nav);
     }
 
-    var splitX = sidebar.querySelector(".kb-split-x");
+    var splitX = document.querySelector(".kb-split-x");
     if (!splitX) {
       splitX = document.createElement("div");
       splitX.className = "kb-split-x";
@@ -548,7 +548,7 @@ function kbSearchPlugin(hook) {
       splitX.setAttribute("aria-label", "拖动调整侧栏宽度");
       splitX.title = "拖动调整宽度，双击复位";
       splitX.tabIndex = 0;
-      sidebar.appendChild(splitX);
+      document.body.appendChild(splitX);
     }
 
     if (sidebar.dataset.kbSplitBound) return;
@@ -577,7 +577,7 @@ function kbSearchPlugin(hook) {
     function setSearchHeight(px, persist) {
       var total = sidebar.clientHeight;
       var y = sidebar.querySelector(".kb-split-y");
-      var splitH = y ? y.offsetHeight : 8;
+      var splitH = y ? y.offsetHeight : 12;
       var maxH = total - splitH - MIN_NAV;
       px = Math.round(Math.max(MIN_SEARCH, Math.min(maxH, px)));
       document.documentElement.style.setProperty("--kb-search-height", px + "px");
@@ -602,25 +602,31 @@ function kbSearchPlugin(hook) {
       el.addEventListener("pointerdown", function (event) {
         if (event.button) return;
         event.preventDefault();
+        event.stopPropagation();
         var start = kind === "x" ? event.clientX : event.clientY;
         var base = kind === "x" ? currentWidth() : search.getBoundingClientRect().height;
         el.classList.add("is-dragging");
         document.body.classList.add(kind === "x" ? "kb-resizing-x" : "kb-resizing-y");
         try { el.setPointerCapture(event.pointerId); } catch (e) {}
         function move(ev) {
+          ev.preventDefault();
           var now = kind === "x" ? ev.clientX : ev.clientY;
           onDelta(base + (now - start));
         }
         function up() {
           el.classList.remove("is-dragging");
           document.body.classList.remove("kb-resizing-x", "kb-resizing-y");
-          el.removeEventListener("pointermove", move);
-          el.removeEventListener("pointerup", up);
-          el.removeEventListener("pointercancel", up);
+          document.removeEventListener("pointermove", move, true);
+          document.removeEventListener("pointerup", up, true);
+          document.removeEventListener("pointercancel", up, true);
+          document.removeEventListener("mousemove", move, true);
+          document.removeEventListener("mouseup", up, true);
         }
-        el.addEventListener("pointermove", move);
-        el.addEventListener("pointerup", up);
-        el.addEventListener("pointercancel", up);
+        document.addEventListener("pointermove", move, true);
+        document.addEventListener("pointerup", up, true);
+        document.addEventListener("pointercancel", up, true);
+        document.addEventListener("mousemove", move, true);
+        document.addEventListener("mouseup", up, true);
       });
     }
 
