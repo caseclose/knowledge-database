@@ -516,6 +516,143 @@ function kbSearchPlugin(hook) {
     var header = panel.querySelector(".kb-nav-header");
     if (tools && header && tools.parentNode !== header) header.appendChild(tools);
     if (nav.parentNode !== panel) panel.appendChild(nav);
+    bindSidebarSplitters(sidebar);
+  }
+
+  function bindSidebarSplitters(sidebar) {
+    if (!sidebar) return;
+    var search = sidebar.querySelector(".kb-search");
+    var nav = sidebar.querySelector(".kb-nav-panel");
+    if (!search || !nav) return;
+
+    var splitY = sidebar.querySelector(".kb-split-y");
+    if (!splitY) {
+      splitY = document.createElement("div");
+      splitY.className = "kb-split-y";
+      splitY.setAttribute("role", "separator");
+      splitY.setAttribute("aria-orientation", "horizontal");
+      splitY.setAttribute("aria-label", "拖动调整搜索区与目录高度");
+      splitY.title = "拖动调整高度，双击复位";
+      splitY.tabIndex = 0;
+      sidebar.insertBefore(splitY, nav);
+    } else if (splitY.nextElementSibling !== nav) {
+      sidebar.insertBefore(splitY, nav);
+    }
+
+    var splitX = sidebar.querySelector(".kb-split-x");
+    if (!splitX) {
+      splitX = document.createElement("div");
+      splitX.className = "kb-split-x";
+      splitX.setAttribute("role", "separator");
+      splitX.setAttribute("aria-orientation", "vertical");
+      splitX.setAttribute("aria-label", "拖动调整侧栏宽度");
+      splitX.title = "拖动调整宽度，双击复位";
+      splitX.tabIndex = 0;
+      sidebar.appendChild(splitX);
+    }
+
+    if (sidebar.dataset.kbSplitBound) return;
+    sidebar.dataset.kbSplitBound = "1";
+
+    var MIN_SIDEBAR = 240;
+    var MIN_SEARCH = 160;
+    var MIN_NAV = 140;
+
+    function maxSidebar() {
+      return Math.min(640, Math.floor(window.innerWidth * 0.72));
+    }
+
+    function currentWidth() {
+      return sidebar.getBoundingClientRect().width || 328;
+    }
+
+    function setSidebarWidth(px, persist) {
+      px = Math.round(Math.max(MIN_SIDEBAR, Math.min(maxSidebar(), px)));
+      document.documentElement.style.setProperty("--sidebar-width", px + "px");
+      if (persist !== false) {
+        try { localStorage.setItem("kb-sidebar-width", String(px)); } catch (e) {}
+      }
+    }
+
+    function setSearchHeight(px, persist) {
+      var total = sidebar.clientHeight;
+      var y = sidebar.querySelector(".kb-split-y");
+      var splitH = y ? y.offsetHeight : 8;
+      var maxH = total - splitH - MIN_NAV;
+      px = Math.round(Math.max(MIN_SEARCH, Math.min(maxH, px)));
+      document.documentElement.style.setProperty("--kb-search-height", px + "px");
+      if (persist !== false) {
+        try { localStorage.setItem("kb-search-height", String(px)); } catch (e) {}
+      }
+    }
+
+    function preferredWidth() {
+      var w = parseInt(localStorage.getItem("kb-sidebar-width"), 10);
+      if (w >= MIN_SIDEBAR) return w;
+      return 328;
+    }
+
+    function preferredSearchHeight() {
+      var h = localStorage.getItem("kb-search-height");
+      if (h && /^\d+px$/.test(h)) return parseInt(h, 10);
+      return null;
+    }
+
+    function bindPointer(el, kind, onDelta) {
+      el.addEventListener("pointerdown", function (event) {
+        if (event.button) return;
+        event.preventDefault();
+        var start = kind === "x" ? event.clientX : event.clientY;
+        var base = kind === "x" ? currentWidth() : search.getBoundingClientRect().height;
+        el.classList.add("is-dragging");
+        document.body.classList.add(kind === "x" ? "kb-resizing-x" : "kb-resizing-y");
+        try { el.setPointerCapture(event.pointerId); } catch (e) {}
+        function move(ev) {
+          var now = kind === "x" ? ev.clientX : ev.clientY;
+          onDelta(base + (now - start));
+        }
+        function up() {
+          el.classList.remove("is-dragging");
+          document.body.classList.remove("kb-resizing-x", "kb-resizing-y");
+          el.removeEventListener("pointermove", move);
+          el.removeEventListener("pointerup", up);
+          el.removeEventListener("pointercancel", up);
+        }
+        el.addEventListener("pointermove", move);
+        el.addEventListener("pointerup", up);
+        el.addEventListener("pointercancel", up);
+      });
+    }
+
+    bindPointer(splitX, "x", setSidebarWidth);
+    bindPointer(splitY, "y", setSearchHeight);
+
+    splitX.addEventListener("dblclick", function () {
+      document.documentElement.style.setProperty("--sidebar-width", "328px");
+      try { localStorage.removeItem("kb-sidebar-width"); } catch (e) {}
+    });
+    splitY.addEventListener("dblclick", function () {
+      document.documentElement.style.setProperty("--kb-search-height", "46%");
+      try { localStorage.removeItem("kb-search-height"); } catch (e) {}
+    });
+
+    splitX.addEventListener("keydown", function (event) {
+      var step = event.shiftKey ? 32 : 16;
+      if (event.key === "ArrowLeft") { event.preventDefault(); setSidebarWidth(currentWidth() - step); }
+      if (event.key === "ArrowRight") { event.preventDefault(); setSidebarWidth(currentWidth() + step); }
+    });
+    splitY.addEventListener("keydown", function (event) {
+      var step = event.shiftKey ? 32 : 16;
+      var h = search.getBoundingClientRect().height;
+      if (event.key === "ArrowUp") { event.preventDefault(); setSearchHeight(h - step); }
+      if (event.key === "ArrowDown") { event.preventDefault(); setSearchHeight(h + step); }
+    });
+
+    window.addEventListener("resize", function () {
+      setSidebarWidth(preferredWidth(), false);
+      var ph = preferredSearchHeight();
+      if (ph != null) setSearchHeight(ph, false);
+    });
   }
 
   function renderSearchUI() {
