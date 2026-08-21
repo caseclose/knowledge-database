@@ -21,8 +21,10 @@
           document.documentElement.style.setProperty("--sidebar-width", w + "px");
         }
         var h = localStorage.getItem("kb-search-height");
-        if (h && (/^\d+px$/.test(h) || h === "46%")) {
+        if (h && /^\d+px$/.test(h)) {
           document.documentElement.style.setProperty("--kb-search-height", h);
+        } else if (h && /^\d+$/.test(h)) {
+          document.documentElement.style.setProperty("--kb-search-height", h + "px");
         }
       } catch (e) {}
     })();
@@ -415,7 +417,7 @@
     .sidebar {
       display: flex;
       flex-direction: column;
-      position: relative;
+      position: fixed;
       width: var(--sidebar-width) !important;
       color: var(--sidebar-text);
       background: var(--sidebar-bg);

@@ -582,7 +582,7 @@ function kbSearchPlugin(hook) {
       px = Math.round(Math.max(MIN_SEARCH, Math.min(maxH, px)));
       document.documentElement.style.setProperty("--kb-search-height", px + "px");
       if (persist !== false) {
-        try { localStorage.setItem("kb-search-height", String(px)); } catch (e) {}
+        try { localStorage.setItem("kb-search-height", px + "px"); } catch (e) {}
       }
     }
 
@@ -594,7 +594,7 @@ function kbSearchPlugin(hook) {
 
     function preferredSearchHeight() {
       var h = localStorage.getItem("kb-search-height");
-      if (h && /^\d+px$/.test(h)) return parseInt(h, 10);
+      if (h && /^\d+(px)?$/.test(h)) return parseInt(h, 10);
       return null;
     }
 
