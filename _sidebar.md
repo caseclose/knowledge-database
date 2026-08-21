@@ -47,3 +47,5 @@
     - [DAPO 与 GRPO 的区别](model-training/rl-post-training/dapo-vs-grpo.md)
   - Image Editing
     - [Qwen-Image-Edit 编辑能力训练](model-training/image-editing/qwen-image-edit-training.md)
+  - PyTorch
+    - [eval() 与 train() 的作用](model-training/pytorch/eval-vs-train.md)

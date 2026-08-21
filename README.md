@@ -55,6 +55,8 @@ graph LR
     RLPT --> K14["DAPO 与 GRPO 的区别"]
     MT --> IE["image-editing"]
     IE --> K15["Qwen-Image-Edit 编辑能力训练"]
+    MT --> PT["pytorch"]
+    PT --> K21["eval() vs train()"]
 
     MA --> DT["diffusion-transformer"]
     DT --> K16["MMDiT 结构"]
@@ -72,8 +74,8 @@ graph LR
 
     class KB root
     class Linux,Agent,PE,Eval,DP,MT,MA category
-    class GPU,OC,GUI,CC,MCP,PE1,EV1,DP1,DP3,OPD,RLPT,IE,DT,MM,PEnc,MoE sub
-    class K1,K2,K3,K4,K5,K6,K7,K8,K9,K10,K11,K12,K13,K14,K15,K16,K17,K18,K19,K20 knowledge
+    class GPU,OC,GUI,CC,MCP,PE1,EV1,DP1,DP3,OPD,RLPT,IE,PT,DT,MM,PEnc,MoE sub
+    class K1,K2,K3,K4,K5,K6,K7,K8,K9,K10,K11,K12,K13,K14,K15,K16,K17,K18,K19,K20,K21 knowledge
 
     click K1 href "#/linux/gpu/fuser-vs-pkill-release-gpu-memory"
     click K2 href "#/agent/opencode/output-truncation-and-thinking-timeout"
@@ -95,6 +97,7 @@ graph LR
     click K18 href "#/model-architecture/positional-encoding/image-vs-text-positional-encoding"
     click K19 href "#/model-architecture/moe/moe-architecture-intro"
     click K20 href "#/agent/mcp/model-context-protocol-intro"
+    click K21 href "#/model-training/pytorch/eval-vs-train"
 ```
 
 > 点击图中蓝色边框的知识条目可直接跳转阅读。
@@ -232,3 +235,4 @@ knowledge-database/
 | `model-architecture/moe/moe-architecture-intro.md` | MoE：路由器 + top-k 专家稀疏激活，负载均衡（无辅助损失偏置）、细粒度 + 共享专家 |
 | `agent/claude-code/tool-calling-and-mcp.md` | Claude Code：`while(tool_use)` agentic loop，内置工具与 MCP 同管线，Tool Search 控 token |
 | `agent/mcp/model-context-protocol-intro.md` | MCP：host/client/server 的 JSON-RPC 插座，tools/resources/prompts，stdio 与 Streamable HTTP |
+| `model-training/pytorch/eval-vs-train.md` | `eval()` / `train()` 只切 Dropout/BN 模式，不关梯度；推理要配 `no_grad()` |
