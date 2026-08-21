@@ -1,6 +1,6 @@
 # DAPO 和 GRPO 的区别
 
-> 创建时间：2026-08-20 ｜ 最新更新：2026-08-20
+> 创建时间：2026-08-20 ｜ 最新更新：2026-08-21
 
 DAPO（Decoupled Clip and Dynamic sAmpling Policy Optimization，字节 2025 开源）不是全新算法，而是在 **GRPO 基础上打的四个补丁**，用来解决大规模 long-CoT RL 里 GRPO 暴露的熵坍缩、奖励噪声、训练不稳等问题。在 Qwen2.5-32B 上把 AIME 2024 从朴素 GRPO 的约 30 分提到 **50 分**（且用更少步数超过 DeepSeek-R1-Zero-Qwen-32B 的 47 分）。
 
@@ -12,7 +12,7 @@ DAPO（Decoupled Clip and Dynamic sAmpling Policy Optimization，字节 2025 开
 
 | 改进 | GRPO 的问题 | DAPO 的做法 |
 |------|------------|------------|
-| **Clip-Higher** | 对称裁剪 `[1−ε, 1+ε]` 压制低概率 token 概率上升，导致**熵坍缩**、探索不足 | 解耦上下界，`ε_low < ε_high`，给正向更新更大上限，鼓励探索、保住熵 |
+| **Clip-Higher** | 对称裁剪 $[1-\varepsilon, 1+\varepsilon]$ 压制低概率 token 概率上升，导致**熵坍缩**、探索不足 | 解耦上下界，$\varepsilon_{\mathrm{low}} < \varepsilon_{\mathrm{high}}$，给正向更新更大上限，鼓励探索、保住熵 |
 | **Dynamic Sampling** | 组内奖励全同（std=0）时优势为 0、**无梯度**，还浪费算力 | 只保留奖励有差异（std>0）的组，持续采样并跨批累积，直到凑满一个有效 batch |
 | **Token-Level Policy Gradient Loss** | 先按样本内 token 平均、再对样本平均，长回答被稀释 → **长度偏置**，不利长 CoT | 改为对一组内**所有 token 一起平均**（token-mean），每个 token 权重不受回答长短影响 |
 | **Overlong Reward Shaping** | 超长被截断的回答带来**奖励噪声**，干扰训练 | 超长过滤（把超长回答 loss mask 置 0）或软惩罚（超过阈值按超出长度递增扣分） |
@@ -32,7 +32,7 @@ DAPO:  组内标准化优势 + 非对称 clip(高) + 动态采样 + token 级 lo
 
 | 维度 | GRPO | DAPO |
 |------|------|------|
-| 裁剪 | 对称 ε | 非对称 `ε_low < ε_high` |
+| 裁剪 | 对称 $\varepsilon$ | 非对称 $\varepsilon_{\mathrm{low}} < \varepsilon_{\mathrm{high}}$ |
 | 采样 | 全用（含 std=0 组） | 过滤 std=0，动态补批 |
 | loss 聚合 | 样本级平均（长度偏置） | token 级平均 |
 | 超长回答 | 直接计入，含噪声 | 过滤 / 软惩罚 |

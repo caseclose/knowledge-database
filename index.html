@@ -7,6 +7,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="vue.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css" />
   <script>
     (function () {
       var saved;
@@ -1026,12 +1027,38 @@
     .theme-toggle .icon-moon { display: flex; }
     [data-theme="dark"] .theme-toggle .icon-sun { display: flex; }
     [data-theme="dark"] .theme-toggle .icon-moon { display: none; }
+
+    /* KaTeX 公式 */
+    .markdown-section .katex {
+      font-size: 1.06em;
+      color: var(--text-heading);
+    }
+
+    .markdown-section .katex-display {
+      margin: 1.25em 0;
+      padding: 1em 1.15em;
+      overflow-x: auto;
+      overflow-y: hidden;
+      background: var(--blockquote-bg);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      border-radius: 10px;
+    }
+
+    .markdown-section .katex-display > .katex {
+      font-size: 1.12em;
+    }
+
+    .markdown-section .kb-math {
+      margin: 1.25em 0;
+    }
   </style>
 </head>
 
 <body>
   <div id="app">加载中...</div>
   <script src="search.js"></script>
+  <script src="katex.js"></script>
   <script>
     window.$docsify = {
       name: "knowledge-database",
@@ -1057,6 +1084,19 @@
           code: function (code, lang) {
             if (lang === "mermaid") {
               return '<div class="mermaid">' + code + "</div>";
+            }
+            if ((lang === "math" || lang === "tex" || lang === "latex") && window.katex) {
+              try {
+                return (
+                  '<div class="kb-math">' +
+                  window.katex.renderToString(code, {
+                    displayMode: true,
+                    throwOnError: false,
+                    output: "html",
+                  }) +
+                  "</div>"
+                );
+              } catch (e) {}
             }
             return this.origin.code.apply(this, arguments);
           },
@@ -1162,6 +1202,7 @@
           });
         },
         kbSearchPlugin,
+        kbKatexPlugin,
       ],
     };
   </script>
@@ -1179,6 +1220,7 @@
       },
     });
   </script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js"></script>
   <script src="//cdn.jsdelivr.net/npm/docsify/lib/docsify.min.js"></script>
   <script src="//cdn.jsdelivr.net/npm/fuse.js@6/dist/fuse.min.js"></script>
   <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/emoji.min.js"></script>
