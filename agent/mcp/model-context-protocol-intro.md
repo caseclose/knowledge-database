@@ -28,9 +28,9 @@ graph TB
         C3["MCP Client 3"]
     end
 
-    S1["Server：本地 filesystem<br/>stdio"]
-    S2["Server：本地 database<br/>stdio"]
-    S3["Server：远程 Sentry<br/>Streamable HTTP"]
+    S1["本地 filesystem · stdio"]
+    S2["本地 database · stdio"]
+    S3["远程 Sentry · HTTP"]
 
     C1 --- S1
     C2 --- S2

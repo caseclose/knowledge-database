@@ -1787,33 +1787,44 @@
             primaryColor: "#1e3a5f",
             primaryTextColor: "#f1f5f9",
             primaryBorderColor: "#60a5fa",
-            lineColor: "#64748b",
+            lineColor: "#94a3b8",
             secondaryColor: "#1e293b",
             tertiaryColor: "#0f172a",
             background: "#1e293b",
-            mainBkg: "#334155",
+            mainBkg: "#1e3a5f",
             nodeBorder: "#60a5fa",
-            clusterBkg: "#1e293b",
+            clusterBkg: "#0f172a",
+            clusterBorder: "#334155",
             titleColor: "#f1f5f9",
-            textColor: "#cbd5e1",
+            textColor: "#f1f5f9",
+            nodeTextColor: "#f1f5f9",
+            tertiaryTextColor: "#f1f5f9",
             edgeLabelBackground: "#1e293b",
           };
         }
         return {
-          primaryColor: "#2c7be5",
-          primaryTextColor: "#fff",
+          primaryColor: "#dbeafe",
+          primaryTextColor: "#1e3a8a",
           primaryBorderColor: "#2c7be5",
-          lineColor: "#94a3b8",
-          secondaryColor: "#eef4ff",
+          lineColor: "#64748b",
+          secondaryColor: "#eff6ff",
           tertiaryColor: "#f8fafc",
           background: "#f8fafc",
-          mainBkg: "#eef4ff",
+          mainBkg: "#dbeafe",
           nodeBorder: "#2c7be5",
           clusterBkg: "#f8fafc",
-          titleColor: "#1a202c",
-          textColor: "#2c3e50",
+          clusterBorder: "#bfdbfe",
+          titleColor: "#1e3a8a",
+          textColor: "#1e3a8a",
+          nodeTextColor: "#1e3a8a",
+          tertiaryTextColor: "#1e3a8a",
           edgeLabelBackground: "#ffffff",
         };
+      }
+
+      function mermaidThemeCSS(isDark) {
+        var color = isDark ? "#e2e8f0" : "#1e3a8a";
+        return ".node .label,.nodeLabel,.cluster-label,.cluster-label span{color:" + color + "}";
       }
 
       function applyMermaidConfig() {
@@ -1823,6 +1834,7 @@
           startOnLoad: false,
           theme: "base",
           themeVariables: mermaidThemeVars(isDark),
+          themeCSS: mermaidThemeCSS(isDark),
         });
       }
 
