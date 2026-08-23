@@ -97,7 +97,7 @@
 |------|--------|------|
 | VLM（商业） | GPT-4o / Claude 3.5 Sonnet | 细节还原、OCR 极佳 |
 | VLM（开源） | Qwen2.5-VL-72B / InternVL2 | 中文 OCR 开源最强 |
-| Temperature | 0.1～0.3 | 低温度抑制"创造力"，保证客观 |
+| Temperature | 0.1 到 0.3 | 低温度抑制"创造力"，保证客观 |
 | Top_P | ~0.8 | 配合低温度使用 |
 
 ## 总结
