@@ -71,12 +71,12 @@ graph LR
 
     classDef root fill:#2c7be5,color:#fff,stroke:none
     classDef category fill:#eef4ff,color:#2c7be5,stroke:#2c7be5,stroke-width:2px
-    classDef sub fill:#f8fafc,color:#4a5568,stroke:#cbd5e0,stroke-width:1px
+    classDef sub fill:#edf2f7,color:#1a202c,stroke:#94a3b8,stroke-width:1px
     classDef knowledge fill:#fff,color:#2c7be5,stroke:#2c7be5,stroke-width:2px
 
     class KB root
     class Linux,Agent,PE,Eval,DP,MT,MA category
-    class GPU,OC,GUI,CC,MCP,RA,PE1,EV1,DP1,DP3,OPD,RLPT,IE,PT,DT,MM,PEnc,MoE sub
+    class GPU,OC,GUI,CC,MCP,RA,PE1,EV1,DP1,DP2,DP3,OPD,RLPT,IE,PT,DT,MM,PEnc,MoE sub
     class K1,K2,K3,K4,K5,K6,K7,K8,K9,K10,K11,K12,K13,K14,K15,K16,K17,K18,K19,K20,K21,K22 knowledge
 
     click K1 href "#/linux/gpu/fuser-vs-pkill-release-gpu-memory"
