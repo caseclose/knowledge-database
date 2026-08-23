@@ -26,7 +26,15 @@
         } else if (h && /^\d+$/.test(h)) {
           document.documentElement.style.setProperty("--kb-search-height", h + "px");
         }
-      } catch (e) {}
+        var collapsedPref = localStorage.getItem("kb-sidebar-collapsed");
+        var hash = location.hash || "#/";
+        var isHome = hash === "#" || hash === "#/" || hash === "#/README" || hash.indexOf("#/README?") === 0;
+        if (isHome || collapsedPref !== "0") {
+          document.documentElement.setAttribute("data-sidebar-collapsed", "1");
+        }
+      } catch (e) {
+        document.documentElement.setAttribute("data-sidebar-collapsed", "1");
+      }
     })();
   </script>
   <style>
@@ -1166,16 +1174,19 @@
       transition: transform 0.25s ease, margin-left 0.25s ease, left 0.25s ease;
     }
 
+    html[data-sidebar-collapsed="1"] .sidebar,
     body.sidebar-collapsed .sidebar {
       transform: translateX(-100%);
     }
 
+    html[data-sidebar-collapsed="1"] .content,
     body.sidebar-collapsed .content {
       left: 0 !important;
       margin-left: 0 !important;
       width: 100% !important;
     }
 
+    html[data-sidebar-collapsed="1"] .markdown-section,
     body.sidebar-collapsed .markdown-section {
       margin-left: auto;
       margin-right: auto;
@@ -1205,12 +1216,14 @@
       color: #fff;
     }
 
+    html[data-sidebar-collapsed="1"] .sidebar-collapse-toggle,
     body.sidebar-collapsed .sidebar-collapse-toggle {
       left: 0;
       border-left: 1px solid var(--border);
       border-radius: 0 10px 10px 0;
     }
 
+    html[data-sidebar-collapsed="1"] .kb-split-x,
     body.sidebar-collapsed .kb-split-x {
       display: none;
     }
@@ -1226,6 +1239,7 @@
       display: none;
     }
 
+    html[data-sidebar-collapsed="1"] .sidebar-toggle,
     body.sidebar-collapsed .sidebar-toggle {
       display: none;
     }
@@ -1240,10 +1254,12 @@
         width: var(--sidebar-width);
       }
 
+      html[data-sidebar-collapsed="1"] .sidebar,
       body.sidebar-collapsed .sidebar {
         transform: none;
       }
 
+      html:not([data-sidebar-collapsed="1"]) body:not(.sidebar-collapsed) .sidebar,
       body:not(.sidebar-collapsed) .sidebar {
         transform: translateX(var(--sidebar-width));
       }
@@ -1787,38 +1803,68 @@
         },
         function (hook) {
           // 封面在首页路由下始终留在 DOM 中（下拉只是滚过它），所以按滚动位置判断封面是否真的在视口内：
-          // 能看到封面时隐藏折叠按钮，滚过封面或进入文档页后恢复显示。
-          function syncCoverToggleVisibility() {
+          // 能看到封面时隐藏折叠按钮并收起侧栏；滚过封面或进入文档页后按用户偏好恢复。
+          var coverWasInView = null;
+          var applySidebarCollapsed = function (collapsed, persist) {
+            document.body.classList.toggle("sidebar-collapsed", collapsed);
+            if (collapsed) document.documentElement.setAttribute("data-sidebar-collapsed", "1");
+            else document.documentElement.removeAttribute("data-sidebar-collapsed");
+            if (persist !== false) {
+              try { localStorage.setItem("kb-sidebar-collapsed", collapsed ? "1" : "0"); } catch (e) {}
+            }
+          };
+
+          function preferredCollapsed() {
+            try {
+              return localStorage.getItem("kb-sidebar-collapsed") !== "0";
+            } catch (e) {
+              return true;
+            }
+          }
+
+          function isCoverInView() {
             var cover = document.querySelector("section.cover.show");
-            var coverInView = !!cover && cover.getBoundingClientRect().bottom > 0;
+            return !!cover && cover.getBoundingClientRect().bottom > 0;
+          }
+
+          function syncCoverToggleVisibility() {
+            var coverInView = isCoverInView();
             document.body.classList.toggle("kb-cover-visible", coverInView);
+            if (coverWasInView === coverInView) return;
+            coverWasInView = coverInView;
+            if (coverInView) applySidebarCollapsed(true, false);
+            else applySidebarCollapsed(preferredCollapsed(), false);
           }
 
           hook.doneEach(function () {
+            coverWasInView = null;
             setTimeout(syncCoverToggleVisibility, 0);
           });
 
           hook.mounted(function () {
-            window.addEventListener("scroll", syncCoverToggleVisibility, { passive: true });
-            window.addEventListener("resize", syncCoverToggleVisibility);
-            syncCoverToggleVisibility();
-
             var sidebarToggle = document.createElement("button");
             sidebarToggle.className = "sidebar-collapse-toggle";
             sidebarToggle.type = "button";
-            sidebarToggle.setAttribute("aria-label", "收起目录");
-            sidebarToggle.innerHTML = "‹";
+            sidebarToggle.setAttribute("aria-label", "展开目录");
+            sidebarToggle.innerHTML = "›";
 
-            function setSidebarCollapsed(collapsed) {
-              document.body.classList.toggle("sidebar-collapsed", collapsed);
+            var prevApply = applySidebarCollapsed;
+            applySidebarCollapsed = function (collapsed, persist) {
+              prevApply(collapsed, persist);
               sidebarToggle.innerHTML = collapsed ? "›" : "‹";
               sidebarToggle.setAttribute("aria-label", collapsed ? "展开目录" : "收起目录");
               sidebarToggle.title = collapsed ? "展开目录" : "收起目录";
-              try { localStorage.setItem("kb-sidebar-collapsed", collapsed ? "1" : "0"); } catch (e) {}
-            }
+            };
+
+            window.addEventListener("scroll", syncCoverToggleVisibility, { passive: true });
+            window.addEventListener("resize", syncCoverToggleVisibility);
+            window.addEventListener("hashchange", function () {
+              coverWasInView = null;
+              setTimeout(syncCoverToggleVisibility, 0);
+            });
 
             sidebarToggle.addEventListener("click", function () {
-              setSidebarCollapsed(!document.body.classList.contains("sidebar-collapsed"));
+              applySidebarCollapsed(!document.body.classList.contains("sidebar-collapsed"));
             });
             document.body.appendChild(sidebarToggle);
 
@@ -1830,15 +1876,12 @@
               docsifyToggle.addEventListener("click", function (event) {
                 event.preventDefault();
                 event.stopImmediatePropagation();
-                setSidebarCollapsed(!document.body.classList.contains("sidebar-collapsed"));
+                applySidebarCollapsed(!document.body.classList.contains("sidebar-collapsed"));
               }, true);
             }
             bindDocsifyToggle();
             setTimeout(bindDocsifyToggle, 0);
-
-            try {
-              setSidebarCollapsed(localStorage.getItem("kb-sidebar-collapsed") === "1");
-            } catch (e) {}
+            syncCoverToggleVisibility();
 
             var btn = document.createElement("button");
             btn.className = "theme-toggle";
