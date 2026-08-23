@@ -1794,6 +1794,15 @@
       },
       plugins: [
         function (hook) {
+          // 半角 ~ 在中文里常表示区间；marked 会把 1/4~1/8 … 6~8 收成删除线。
+          hook.beforeEach(function (content) {
+            return content.replace(
+              /(\d+(?:\/\d+)?(?:\.\d+)?)\s*~\s*(\d+(?:\/\d+)?(?:\.\d+)?)/g,
+              "$1～$2"
+            );
+          });
+        },
+        function (hook) {
           hook.doneEach(function () {
             document.querySelectorAll(".markdown-section blockquote").forEach(function (quote) {
               var text = (quote.textContent || "").replace(/^\s+/, "");
