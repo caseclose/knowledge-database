@@ -1246,9 +1246,21 @@
       display: none;
     }
 
+    .kb-sidebar-dim {
+      display: none;
+    }
+
     @media screen and (max-width: 768px) {
-      .content {
+      .content,
+      body.close .content,
+      html:not([data-sidebar-collapsed="1"]) .content,
+      body:not(.sidebar-collapsed) .content {
         left: 0 !important;
+        right: 0 !important;
+        margin-left: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        transform: none !important;
       }
 
       .sidebar {
@@ -1348,6 +1360,23 @@
 
       .sidebar-toggle span:last-child {
         margin-bottom: 0;
+      }
+
+      .kb-sidebar-dim {
+        display: block;
+        position: fixed;
+        inset: 0;
+        z-index: 18;
+        background: rgba(15, 23, 42, 0.46);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease;
+      }
+
+      html:not([data-sidebar-collapsed="1"]) .kb-sidebar-dim,
+      body:not(.sidebar-collapsed) .kb-sidebar-dim {
+        opacity: 1;
+        pointer-events: auto;
       }
     }
 
@@ -1883,11 +1912,20 @@
           var coverWasInView = null;
           var applySidebarCollapsed = function (collapsed, persist) {
             document.body.classList.toggle("sidebar-collapsed", collapsed);
+            document.body.classList.remove("close");
             if (collapsed) document.documentElement.setAttribute("data-sidebar-collapsed", "1");
             else document.documentElement.removeAttribute("data-sidebar-collapsed");
             if (persist !== false) {
               try { localStorage.setItem("kb-sidebar-collapsed", collapsed ? "1" : "0"); } catch (e) {}
             }
+            var content = document.querySelector(".content");
+            if (content) {
+              content.style.transform = "";
+              content.style.left = "";
+              content.style.width = "";
+            }
+            var sidebar = document.querySelector(".sidebar");
+            if (sidebar) sidebar.style.transform = "";
           };
 
           function preferredCollapsed() {
@@ -1953,10 +1991,28 @@
                 event.preventDefault();
                 event.stopImmediatePropagation();
                 applySidebarCollapsed(!document.body.classList.contains("sidebar-collapsed"));
+                setTimeout(function () {
+                  document.body.classList.remove("close");
+                  var content = document.querySelector(".content");
+                  if (content) content.style.transform = "";
+                }, 0);
               }, true);
             }
             bindDocsifyToggle();
             setTimeout(bindDocsifyToggle, 0);
+
+            var sidebarDim = document.getElementById("kb-sidebar-dim");
+            if (!sidebarDim) {
+              sidebarDim = document.createElement("div");
+              sidebarDim.id = "kb-sidebar-dim";
+              sidebarDim.className = "kb-sidebar-dim";
+              sidebarDim.setAttribute("aria-hidden", "true");
+              document.body.appendChild(sidebarDim);
+            }
+            sidebarDim.addEventListener("click", function () {
+              applySidebarCollapsed(true);
+            });
+
             syncCoverToggleVisibility();
 
             var btn = document.createElement("button");
