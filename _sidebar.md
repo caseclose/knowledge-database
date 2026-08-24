@@ -13,6 +13,8 @@
     - [模型上下文协议介绍](agent/mcp/model-context-protocol-intro.md)
   - ReAct
     - [推理与行动交错](agent/react/react-reasoning-and-acting.md)
+  - LangChain
+    - [LangChain 是什么](agent/langchain/langchain-intro.md)
 - Prompt Engineering
   - VLM Image Captioning
     - [结构化 Image Captioning](prompt-engineering/vlm-image-captioning/structured-image-captioning.md)
