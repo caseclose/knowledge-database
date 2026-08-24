@@ -1272,7 +1272,7 @@
 
       .kb-split-x,
       .kb-split-y {
-        display: none;
+        display: none !important;
       }
 
       :root,
@@ -1281,10 +1281,11 @@
       }
 
       .sidebar {
-        top: 0;
-        bottom: 0;
-        height: auto;
-        max-height: none;
+        position: fixed !important;
+        top: 0 !important;
+        bottom: 0 !important;
+        height: auto !important;
+        max-height: none !important;
         z-index: 20;
       }
 
