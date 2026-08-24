@@ -99,6 +99,19 @@
       color: var(--text-heading);
     }
 
+    /* 代码块是深色底：全局选中色会把字改成深色标题色，白天模式几乎看不清 */
+    .markdown-section pre::selection,
+    .markdown-section pre *::selection {
+      background: color-mix(in srgb, #93c5fd 62%, transparent);
+      color: #f8fafc;
+    }
+
+    .markdown-section pre::-moz-selection,
+    .markdown-section pre *::-moz-selection {
+      background: color-mix(in srgb, #93c5fd 62%, transparent);
+      color: #f8fafc;
+    }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
         "Microsoft YaHei", "Helvetica Neue", sans-serif;
