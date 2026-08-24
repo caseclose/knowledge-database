@@ -1275,9 +1275,17 @@
         display: none;
       }
 
+      :root,
+      html {
+        --sidebar-width: min(320px, 86vw) !important;
+      }
+
       .sidebar {
-        height: 100%;
-        max-height: 100dvh;
+        top: 0;
+        bottom: 0;
+        height: auto;
+        max-height: none;
+        z-index: 20;
       }
 
       .kb-search {
@@ -1317,6 +1325,28 @@
       body.sidebar-collapsed .sidebar-toggle,
       .sidebar-toggle {
         display: block !important;
+        position: fixed;
+        left: max(14px, env(safe-area-inset-left));
+        bottom: max(18px, env(safe-area-inset-bottom));
+        width: 48px;
+        height: 48px;
+        padding: 13px 12px !important;
+        border-radius: 14px;
+        background: var(--bg) !important;
+        box-shadow: 0 8px 24px var(--shadow);
+        z-index: 30;
+      }
+
+      .sidebar-toggle span {
+        background-color: var(--accent);
+        width: 18px;
+        height: 2px;
+        margin: 0 auto 4px;
+        border-radius: 2px;
+      }
+
+      .sidebar-toggle span:last-child {
+        margin-bottom: 0;
       }
     }
 
