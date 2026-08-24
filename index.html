@@ -798,9 +798,10 @@
 
     .kb-nav-panel {
       flex: 1 1 auto;
-      min-height: 140px;
+      min-height: 0;
       display: flex;
       flex-direction: column;
+      overflow: hidden;
       background: var(--sidebar-bg);
     }
 
@@ -1274,10 +1275,42 @@
         display: none;
       }
 
+      .sidebar {
+        height: 100%;
+        max-height: 100dvh;
+      }
+
       .kb-search {
-        flex: 1 1 46%;
-        height: auto;
-        max-height: none;
+        flex: 0 1 auto;
+        height: auto !important;
+        min-height: 0;
+        max-height: min(36vh, 280px) !important;
+      }
+
+      .kb-search:not(.is-searching) .kb-search-results,
+      .kb-search:not(.is-searching) .kb-catalog-bar {
+        display: none;
+      }
+
+      .kb-search.is-searching {
+        flex: 0 1 auto;
+        max-height: min(48vh, 360px) !important;
+      }
+
+      .kb-nav-panel {
+        flex: 1 1 0%;
+        min-height: 0;
+      }
+
+      .sidebar-nav {
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+        padding-bottom: max(80px, calc(28px + env(safe-area-inset-bottom))) !important;
+      }
+
+      .kb-search-kbd,
+      .sidebar-pin {
+        display: none !important;
       }
 
       .sidebar-toggle {
@@ -1967,14 +2000,18 @@
                 var expand = btn.getAttribute("data-sidebar-action") === "expand";
                 document.querySelectorAll(".sidebar-nav li.folder").forEach(function (item) {
                   item.classList.toggle("open", expand);
-                  item.classList.remove("collapse");
+                  item.classList.toggle("collapse", !expand);
                 });
-                document.querySelectorAll(".sidebar-nav li.file:has(> .app-sub-sidebar)").forEach(function (item) {
-                  item.classList.toggle("open", expand);
-                });
-                document.querySelectorAll(".sidebar-nav ul.app-sub-sidebar").forEach(function (ul) {
-                  ul.classList.toggle("open", expand);
-                });
+                if (!expand) {
+                  document.querySelectorAll(".sidebar-nav li.file.open").forEach(function (item) {
+                    item.classList.remove("open");
+                  });
+                  document.querySelectorAll(".sidebar-nav ul.app-sub-sidebar").forEach(function (ul) {
+                    ul.classList.remove("open");
+                  });
+                }
+                var nav = document.querySelector(".sidebar-nav");
+                if (nav) nav.scrollTop = 0;
               });
             }
             wrapFolderLabels();
