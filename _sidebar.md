@@ -43,6 +43,8 @@
     - [图像 vs 文本位置编码](model-architecture/positional-encoding/image-vs-text-positional-encoding.md)
   - MoE
     - [MoE 混合专家架构介绍](model-architecture/moe/moe-architecture-intro.md)
+  - Normalization
+    - [BN / LN / PreNorm / PostNorm](model-architecture/normalization/batchnorm-layernorm-prenorm-postnorm.md)
 - Model Training
   - On-Policy Distillation
     - [OPD：从 LLM 到 Flow Matching](model-training/on-policy-distillation/opd-from-llm-to-flow-matching.md)
