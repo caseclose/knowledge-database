@@ -23,15 +23,17 @@ $$
 
 $\mu,\sigma$ 的统计范围一变，就是 BN 还是 LN。
 
-## BatchNorm vs LayerNorm
+## BatchNorm vs LayerNorm vs RMSNorm
 
-| | BatchNorm | LayerNorm |
-|--|-----------|-----------|
-| 统计范围 | 同一通道、**跨样本**（卷积再加空间维） | **单个样本 / 单个 token** 的整段特征 |
-| 依赖 batch 大小 | 强：batch 太小统计很噪 | 无 |
-| 训练 / 推理 | 训练用当前 batch；推理用 `running_mean` / `running_var` | 两种模式公式一样 |
-| 典型场景 | CNN、检测、有稳定大 batch 的视觉 | Transformer、NLP、可变长、小 batch |
-| 和 `eval()` | 必须切对，否则用错统计量 | 前向不变，见 [`eval()` vs `train()`](../../model-training/pytorch/eval-vs-train.md) |
+| | BatchNorm | LayerNorm | RMSNorm |
+|--|-----------|-----------|---------|
+| 统计范围 | 同一通道、**跨样本**（卷积再加空间维） | **单个 token** 的整段特征 | 同 LN：每个 token 的特征维 |
+| 减均值 | 要 | 要 | **不要** |
+| 可学习参数 | $\gamma,\beta$ | $\gamma,\beta$ | 通常只有 $\gamma$ |
+| 依赖 batch | 强 | 无 | 无 |
+| 训练 / 推理 | 推理改用 running 统计 | 公式不变 | 公式不变 |
+| 典型场景 | CNN、大 batch 视觉 | 原版 Transformer、BERT | LLaMA、Qwen、Gemma 等 LLM |
+| 和 `eval()` | 必须切对 | 前向不变 | 前向不变，见 [`eval()` vs `train()`](../../model-training/pytorch/eval-vs-train.md) |
 
 BatchNorm（特征图 $[N,C,H,W]$，对每个通道 $c$）：
 
@@ -49,14 +51,35 @@ $$
 
 直观记：**BN 问「这个通道在这一批里长什么样」；LN 问「这个 token 自己的各维长什么样」。** 换一个 batch，BN 的 $\mu,\sigma$ 会变，LN 不会。所以变长序列、batch=1 的生成、数据并行切太碎时，BN 会抖，LN 稳。
 
-LLM 里还常见 **RMSNorm**（LLaMA、Qwen 等）：不算均值、只除 RMS，也没有 $\beta$。它仍是「沿特征维、每个 token 独立」，和 LN 同一轴，只是公式更省。
-
 ```python
 # 伪代码：只标统计轴
 # x: [N, L, C]
-bn_mu = x.mean(dim=(0, 1))          # 跨 batch 和长度，每个通道一个
+bn_mu = x.mean(dim=(0, 1))            # 跨 batch 和长度，每个通道一个
 ln_mu = x.mean(dim=-1, keepdim=True)  # 每个 token 自己的 C 维
 ```
+
+## RMSNorm：LN 去掉「减均值」
+
+[RMSNorm](https://arxiv.org/abs/1910.07467)（Zhang & Sennrich, 2019）和 LN **同一根轴**：每个 token、沿特征维。差别只在公式——**不减均值，只按均方根缩放**，一般也不加 $\beta$：
+
+$$
+\mathrm{RMS}(x) = \sqrt{\frac{1}{C}\sum_{c=1}^{C} x_c^2 + \epsilon}, \qquad
+\hat{x} = \gamma \odot \frac{x}{\mathrm{RMS}(x)}
+$$
+
+LN 是「先居中、再按标准差缩放」；RMSNorm 认为 Transformer 隐状态均值本来就接近 0，**真正要管的是向量长度**。少一次 mean、少一组 $\beta$，算得更便宜，效果通常和 LN 持平甚至略稳。
+
+```python
+# x: [N, L, C]，gamma: [C]
+rms = (x.pow(2).mean(dim=-1, keepdim=True) + eps).sqrt()
+y = x / rms * gamma
+```
+
+PyTorch 2.4+ 有 `F.rms_norm`；LLaMA 实现常叫 `LlamaRMSNorm`。摆放仍走 Pre/Post：LLaMA / Qwen 是 **Pre-RMSNorm**，即 $x + F(\mathrm{RMSNorm}(x))$。
+
+不要把它理解成「第三种统计范围」。它是 **LN 的简化版**，不是 BN 的变体。
+
+面试补一句：T5 的 Scale Norm、部分论文的 Pre-LN without centering，和 RMSNorm 是同一思路。
 
 ## PreNorm vs PostNorm
 
@@ -109,16 +132,17 @@ PreNorm 好训的原因：反向时 $\partial y/\partial x$ 里有一项恒为 $
 1. 先拆两轴，再谈组合。
 2. **视觉 CNN → BN +（残差块里的）Pre-Activation**；**语言模型 → LN/RMSNorm + PreNorm**。
 3. 不要说「PreNorm 就是 LayerNorm」——Pre/Post 是位置，LN 是算法。
-4. 提到 BN 一定带上：推理必须 `eval()`，用 running 统计量；LN 没有这套状态。
-5. 补充一句 RMSNorm：现在开源 LLM 往往连 $\mu$ 都不减了。
+4. 提到 BN 一定带上：推理必须 `eval()`，用 running 统计量；LN / RMSNorm 没有这套状态。
+5. RMSNorm = 每个 token 沿特征维除 RMS，不减 $\mu$、通常无 $\beta$；和 LN 同一轴，只是更省。
 
 ## 总结
 
 | 词 | 一句话 |
 |----|--------|
 | BatchNorm | 跨样本（和空间）按通道归一化，绑 batch，推理用 running 统计 |
-| LayerNorm | 每个 token 沿特征维归一化，与 batch 无关 |
-| PreNorm | $x + F(\mathrm{LN}(x))$，残差是纯捷径，深网好训 |
-| PostNorm | $\mathrm{LN}(x + F(x))$，原版 Transformer，捷径被 LN 改写 |
+| LayerNorm | 每个 token 沿特征维减均值再除标准差 |
+| RMSNorm | 同 LN 的轴，只除 RMS、不减均值，现代开源 LLM 默认 |
+| PreNorm | $x + F(\mathrm{Norm}(x))$，残差是纯捷径，深网好训 |
+| PostNorm | $\mathrm{Norm}(x + F(x))$，原版 Transformer，捷径被 Norm 改写 |
 
-> **一句话：** BN / LN 差在统计范围（跨 batch 的通道 vs 单个 token 的特征）；Pre / Post 差在 LN 放在残差里面还是外面——PreNorm 保住恒等通路所以好训深模型，现代 LLM 基本是 LN 或 RMSNorm 配 PreNorm。
+> **一句话：** BN / LN 差在统计范围（跨 batch 的通道 vs 单个 token 的特征）；RMSNorm 是 LN 去掉居中、只按 RMS 缩放；Pre / Post 差在 Norm 放在残差里面还是外面——现代 LLM 基本是 RMSNorm（或 LN）配 PreNorm。

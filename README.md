@@ -247,4 +247,4 @@ knowledge-database/
 | `model-training/pytorch/eval-vs-train.md` | `eval()` / `train()` 只切 Dropout/BN 模式，不关梯度；推理要配 `no_grad()` |
 | `agent/react/react-reasoning-and-acting.md` | ReAct：Thought / Action / Observation 交错循环，手写 parse + 工具执行 |
 | `agent/langchain/langchain-intro.md` | LangChain：LCEL 编排线性流程，`create_agent` 跑在 LangGraph 上，LangSmith 观测 |
-| `model-architecture/normalization/batchnorm-layernorm-prenorm-postnorm.md` | 两轴：BN/LN 是统计范围，Pre/Post 是残差内外；现代 LLM 多为 LN/RMSNorm + PreNorm |
+| `model-architecture/normalization/batchnorm-layernorm-prenorm-postnorm.md` | 两轴：BN/LN 是统计范围，Pre/Post 是残差内外；RMSNorm = 不减均值的 LN，现代 LLM 默认 |
