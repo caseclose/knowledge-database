@@ -1313,8 +1313,10 @@
         display: none !important;
       }
 
+      html[data-sidebar-collapsed="1"] .sidebar-toggle,
+      body.sidebar-collapsed .sidebar-toggle,
       .sidebar-toggle {
-        display: block;
+        display: block !important;
       }
     }
 
