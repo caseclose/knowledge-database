@@ -1,6 +1,6 @@
 # DAPO 和 GRPO 的区别
 
-> 创建时间：2026-08-20 ｜ 最新更新：2026-08-25 ｜ 标签：面试、训练
+> 创建时间：2026-08-20 ｜ 最新更新：2026-08-25 ｜ 标签：面试、后训练
 
 DAPO（Decoupled Clip and Dynamic sAmpling Policy Optimization，字节 Seed 2025）不是新的优势估计器，而是在 **GRPO 底座上打的四个补丁**，专门治大规模 long-CoT RL 里朴素 GRPO 的熵坍缩、零梯度组、长度偏置、截断奖励噪声。Qwen2.5-32B 上 AIME 2024：朴素 GRPO 约 **30** 分，DAPO **50** 分，且用大约一半步数超过 DeepSeek-R1-Zero-Qwen-32B 的 47 分。
 
