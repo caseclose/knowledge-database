@@ -59,8 +59,8 @@ graph LR
     OPD --> K8["OPD：从 LLM 到 Flow Matching"]
 
     MT --> RLPT["rl-post-training"]
-    RLPT --> K13["GRPO 的优势函数"]
-    RLPT --> K14["DAPO 与 GRPO 的区别"]
+    RLPT --> K13["GRPO 优势与 Loss"]
+    RLPT --> K14["DAPO 与 GRPO"]
     RLPT --> K25["SFT vs RL 的 loss"]
     MT --> IE["image-editing"]
     IE --> K15["Qwen-Image-Edit 编辑能力训练"]
@@ -243,8 +243,8 @@ knowledge-database/
 | `model-serving/vllm/glm52-dual-node-tp16-deploy.md` | 双节点 16×H20 TP=16 部署 GLM-5.2-FP8，ray 编排 + Codex CLI 接入 |
 | `model-serving/vllm/glm52-deploy-gotchas.md` | GLM-5.2 部署五坑（cu129 构建 / flashinfer 编译 / KV cache / 代理 / codex） |
 | `model-training/on-policy-distillation/opd-from-llm-to-flow-matching.md` | OPD（在策略蒸馏）：student 采样 + teacher 密集监督，从 LLM 到 Flow Matching 的 9 篇论文脉络 |
-| `model-training/rl-post-training/grpo-advantage-function.md` | GRPO 优势函数：组内奖励标准化 `A=(r−mean)/std` 取代 critic，std=0 时失去梯度 |
-| `model-training/rl-post-training/dapo-vs-grpo.md` | DAPO = GRPO + 四补丁（Clip-Higher / Dynamic Sampling / Token-Level Loss / Overlong Shaping）并去 KL |
+| `model-training/rl-post-training/grpo-advantage-function.md` | GRPO：组内 z-score 优势取代 critic；clip + KL 的 loss 逐符号；std=0 无梯度 |
+| `model-training/rl-post-training/dapo-vs-grpo.md` | DAPO 与 GRPO 的优势/loss 对照：非对称 clip、动态采样、token-mean、超长整形、去 KL |
 | `model-training/image-editing/qwen-image-edit-training.md` | Qwen-Image-Edit：VL 语义 + VAE 外观双编码，T2I/TI2I/I2I 多任务对齐潜空间 |
 | `model-architecture/diffusion-transformer/mmdit-structure.md` | MMDiT：双流独立权重 + joint self-attention 取代 cross-attention，图文双向对齐 |
 | `model-architecture/multimodal/qwen3-vl-vision-injection.md` | Qwen3-VL：merger 压缩视觉 token + DeepStack 残差注入 LLM 前几层 + interleaved-MRoPE |

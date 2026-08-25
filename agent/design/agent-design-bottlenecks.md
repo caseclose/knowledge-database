@@ -2,7 +2,7 @@
 
 > 创建时间：2026-08-25 ｜ 最新更新：2026-08-25 ｜ 标签：面试
 
-2026 年面试里这题很少再答成「模型不够聪明」。单步推理已经很强，但把模型塞进 [ReAct](../react/react-reasoning-and-acting.md) / `while(tool_use)` 循环、让任务跑几十上百步，失败模式会换一套。可以把这个落差叫 **horizon gap**：单次前向能做的，和长时间可靠做完不是一回事。
+2026 年面试里这题很少再答成「模型不够聪明」。单步推理已经很强，但把模型塞进 [ReAct](/agent/react/react-reasoning-and-acting.md) / `while(tool_use)` 循环、让任务跑几十上百步，失败模式会换一套。可以把这个落差叫 **horizon gap**：单次前向能做的，和长时间可靠做完不是一回事。
 
 先分清三个常被混为一谈的词：
 
@@ -18,7 +18,7 @@
 
 硬限制是窗口上限；更早出现的是 **context rot**：token 还没顶满，有效回忆已经掉——早期约束忘掉、重复已做步骤、被工具返回的元数据淹没。企业系统一次 tool 结果就能带大量无关字段；coding agent 则是读文件、测试日志、网页把窗口灌满。
 
-常见对策都有代价：截断丢因果，摘要引入幻觉，compaction 还可能打穿 prompt cache。所以瓶颈在 **context engineering**（决定什么进窗口），不在再买一个更大窗口。相关讨论见 [Claude Code 的 Tool Search](../claude-code/tool-calling-and-mcp.md)（MCP 工具定义本身就能吃掉数万 token）和 [Pi 把 harness 砍到 ~1K](../pi/pi-vs-other-agents.md)。
+常见对策都有代价：截断丢因果，摘要引入幻觉，compaction 还可能打穿 prompt cache。所以瓶颈在 **context engineering**（决定什么进窗口），不在再买一个更大窗口。相关讨论见 [Claude Code 的 Tool Search](/agent/claude-code/tool-calling-and-mcp.md)（MCP 工具定义本身就能吃掉数万 token）和 [Pi 把 harness 砍到约 1K](/agent/pi/pi-vs-other-agents.md)。
 
 ## 2. 误差会复合，计划错得更早
 
@@ -46,16 +46,16 @@ Agent 循环默认相信模型的 `end_turn` / `Finish`。模型会：
 
 ## 5. 训练与评测都还对不齐「长时间干活」
 
-- **训练**：SFT 模仿短轨迹；RL 需要可验证奖励。真实 agent 轨迹长、奖励稀、且 heavily off-policy（日志里的工具结果不是当前策略打的）。见 [SFT vs RL loss](../../model-training/rl-post-training/sft-vs-rl-loss.md)。
+- **训练**：SFT 模仿短轨迹；RL 需要可验证奖励。真实 agent 轨迹长、奖励稀、且 heavily off-policy（日志里的工具结果不是当前策略打的）。见 [SFT vs RL loss](/model-training/rl-post-training/sft-vs-rl-loss.md)。
 - **评测**：单步 benchmark 涨分，不代表 80 步工作流不漂。任务有路径依赖，失败难复现，leaderboard 和日用相关弱。
 
 所以「换更强模型」和「agent 产品变可靠」只是部分重叠。
 
 ## 6. Harness 自己也是瓶颈
 
-外壳太厚：系统提示、工具 schema、子 agent 摘要、自动 compaction，**抢窗口、改模型行为、还不可见**。外壳太薄：权限、LSP、会话持久化、恢复都要你自己补。这是 [Pi vs Claude Code / OpenCode](../pi/pi-vs-other-agents.md) 的分歧，不是谁绝对正确。
+外壳太厚：系统提示、工具 schema、子 agent 摘要、自动 compaction，**抢窗口、改模型行为、还不可见**。外壳太薄：权限、LSP、会话持久化、恢复都要你自己补。这是 [Pi vs Claude Code / OpenCode](/agent/pi/pi-vs-other-agents.md) 的分歧，不是谁绝对正确。
 
-[LangChain](../langchain/langchain-intro.md) 的说法仍适用：**Agent = Model + Harness**。2026 年很多事故出在 harness（上下文、终止、权限、可观测），不是出在权重。
+[LangChain](/agent/langchain/langchain-intro.md) 的说法仍适用：**Agent = Model + Harness**。2026 年很多事故出在 harness（上下文、终止、权限、可观测），不是出在权重。
 
 ## 面试怎么排优先级
 

@@ -35,7 +35,7 @@ A(x,y)\sum_t\nabla_\theta\log\pi_\theta(y_t\mid x,y_{<t})
 \right]
 $$
 
-$A$ 是优势（奖励减基线）。PPO / [GRPO](grpo-advantage-function.md) 再乘重要性比 $\rho=\pi_\theta/\pi_{\mathrm{old}}$ 并 clip。序列级奖励时，回答里每个 token 往往共享同一个 $A$（token 级细分是 [DAPO](dapo-vs-grpo.md) 那类后续工作）。
+$A$ 是优势（奖励减基线）。PPO / [GRPO](/model-training/rl-post-training/grpo-advantage-function.md) 再乘重要性比 $\rho=\pi_\theta/\pi_{\mathrm{old}}$ 并 clip。序列级奖励时，回答里每个 token 往往共享同一个 $A$（token 级细分是 [DAPO](/model-training/rl-post-training/dapo-vs-grpo.md) 那类后续工作）。
 
 ## 对照：同一条 $\nabla\log\pi$，四个不一样
 
@@ -79,7 +79,7 @@ DFT 的修法是给 SFT 再乘回 $\pi_\theta$（stop-gradient），把 $- \log 
 
 - **曝光偏差**：SFT 从未在「自己刚才生成错了」的前缀上受训；RL 的状态就是自己的前缀，训练分布和推理分布对齐。
 - **负样本**：SFT 通常只有正例；RL 的 $A<0$ 会压低差回答（GRPO 组内相对差的那一半）。
-- **KL**：SFT 没有显式 KL；PPO/GRPO 常加 $\beta\,\mathrm{KL}(\pi_\theta\parallel\pi_{\mathrm{ref}})$ 防止跑飞，[DAPO](dapo-vs-grpo.md) 选择去掉它。
+- **KL**：SFT 没有显式 KL；PPO/GRPO 常加 $\beta\,\mathrm{KL}(\pi_\theta\parallel\pi_{\mathrm{ref}})$ 防止跑飞，[DAPO](/model-training/rl-post-training/dapo-vs-grpo.md) 选择去掉它。
 - **可学什么**：没有奖励模型、没有可验证对错时，只能 SFT；有 verifier / RM 时 RL 才能把「更好」写进梯度。
 
 实践上几乎总是 **SFT 打底（格式、工具调用、基本能力）→ RL 拉齐可验证目标（数学、代码、偏好）**，不是二选一。

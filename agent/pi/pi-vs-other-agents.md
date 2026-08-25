@@ -4,7 +4,7 @@
 
 Pi（现维护于 [earendil-works/pi](https://github.com/earendil-works/pi)，原 [badlogic/pi-mono](https://github.com/badlogic/pi-mono)）是 Mario Zechner 做的 **MIT 许可、刻意极简的 coding agent harness**。面试里不要把它说成「又一个 Claude Code 开源平替」，它的产品假设相反：**frontier 模型已经被 RL 训成 coding agent 了，harness 每多塞一条工具 schema / 系统提示，都是在烧上下文。**
 
-对照见作者原文：[What I learned building an opinionated and minimal coding agent](https://mariozechner.at/posts/2025-11-30-pi-coding-agent/)。仓库里已有的 [Claude Code](../claude-code/tool-calling-and-mcp.md)、[OpenCode](../opencode/output-truncation-and-thinking-timeout.md)、[ReAct](../react/react-reasoning-and-acting.md) 是同一类 `while(tool_use)` 循环，差在外壳厚薄。
+对照见作者原文：[What I learned building an opinionated and minimal coding agent](https://mariozechner.at/posts/2025-11-30-pi-coding-agent/)。仓库里已有的 [Claude Code](/agent/claude-code/tool-calling-and-mcp.md)、[OpenCode](/agent/opencode/output-truncation-and-thinking-timeout.md)、[ReAct](/agent/react/react-reasoning-and-acting.md) 是同一类 `while(tool_use)` 循环，差在外壳厚薄。
 
 ## 默认就这么瘦
 
