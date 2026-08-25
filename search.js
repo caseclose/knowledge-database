@@ -181,6 +181,14 @@ function kbSearchPlugin(hook) {
         }
         var p = this.getAttribute("data-path");
         window.location.hash = pathToHash(p);
+        if (window.matchMedia("(max-width: 768px)").matches) {
+          setTimeout(function () {
+            document.body.classList.add("sidebar-collapsed");
+            document.documentElement.setAttribute("data-sidebar-collapsed", "1");
+            document.body.classList.remove("close");
+            try { localStorage.setItem("kb-sidebar-collapsed", "1"); } catch (e) {}
+          }, 0);
+        }
       });
     });
     markActiveResult(container);

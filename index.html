@@ -2226,8 +2226,21 @@
               var target = event.target && event.target.closest ? event.target : null;
               if (!target) return;
               if (target.closest(".kb-tag[data-tag]")) return;
-              if (target.closest(".kb-search-brand, .kb-result-item[data-path]")) {
-                applySidebarCollapsed(true);
+              var closeSoon = function () {
+                setTimeout(function () { applySidebarCollapsed(true); }, 0);
+              };
+              var result = target.closest(".kb-result-item[data-path]");
+              if (result) {
+                var route = (result.getAttribute("data-path") || "").replace(/\.md$/i, "");
+                var hash = !route || route === "README" ? "#/" : "#/" + route;
+                if (location.hash.replace(/^#\/?/, "") !== hash.replace(/^#\/?/, "")) {
+                  location.hash = hash;
+                }
+                closeSoon();
+                return;
+              }
+              if (target.closest(".kb-search-brand")) {
+                closeSoon();
                 return;
               }
               var link = target.closest(".sidebar-nav a");
@@ -2235,7 +2248,7 @@
               var parent = link.parentElement;
               if (parent && parent.classList.contains("folder")) return;
               var href = link.getAttribute("href") || "";
-              if (href.charAt(0) === "#") applySidebarCollapsed(true);
+              if (href.charAt(0) === "#") closeSoon();
             });
           }
 
