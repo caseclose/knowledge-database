@@ -4,7 +4,7 @@
 
 DAPO（Decoupled Clip and Dynamic sAmpling Policy Optimization，字节 Seed 2025）不是新的优势估计器，而是在 **GRPO 底座上打的四个补丁**，专门治大规模 long-CoT RL 里朴素 GRPO 的熵坍缩、零梯度组、长度偏置、截断奖励噪声。Qwen2.5-32B 上 AIME 2024：朴素 GRPO 约 **30** 分，DAPO **50** 分，且用大约一半步数超过 DeepSeek-R1-Zero-Qwen-32B 的 47 分。
 
-配套阅读：[GRPO 的优势函数](model-training/rl-post-training/grpo-advantage-function.md)（组内 z-score、对称 clip、样本级 loss、KL 的逐符号说明）。本文把 **DAPO 的优势、loss 每个量**，以及相对 GRPO **每一处改动带来什么** 写全。
+配套阅读：[GRPO 的优势函数](#/model-training/rl-post-training/grpo-advantage-function)（组内 z-score、对称 clip、样本级 loss、KL 的逐符号说明）。本文把 **DAPO 的优势、loss 每个量**，以及相对 GRPO **每一处改动带来什么** 写全。
 
 ## 相同的底座
 
