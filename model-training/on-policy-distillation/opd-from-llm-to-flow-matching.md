@@ -1,6 +1,6 @@
 # OPD：从 LLM 到 Flow Matching 的在策略蒸馏（On-Policy Distillation）
 
-> 创建时间：2026-07-17 ｜ 最新更新：2026-08-21
+> 创建时间：2026-07-17 ｜ 最新更新：2026-08-25 ｜ 标签：训练
 
 > 本文梳理 On-Policy Distillation（OPD，在策略蒸馏）这一训练范式的核心思想、相比传统 KD 与 RL 的优势，以及它 2023 年在 LLM 上发源、2026 年迁移到 Flow Matching 图像生成模型的论文脉络（共 9 篇，截至 2026-07）。DiffusionOPD 论文中也称之为 Online Policy Distillation。
 
