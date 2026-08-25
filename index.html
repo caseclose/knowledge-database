@@ -1311,7 +1311,8 @@
         bottom: 0 !important;
         height: auto !important;
         max-height: none !important;
-        z-index: 20;
+        z-index: 80 !important;
+        pointer-events: auto;
       }
 
       .kb-search {
@@ -1349,18 +1350,20 @@
 
       html[data-sidebar-collapsed="1"] .sidebar-toggle,
       body.sidebar-collapsed .sidebar-toggle,
+      body.close .sidebar-toggle,
       .sidebar-toggle {
         display: block !important;
         position: fixed;
         left: max(14px, env(safe-area-inset-left));
         bottom: max(18px, env(safe-area-inset-bottom));
-        width: 48px;
-        height: 48px;
+        width: 48px !important;
+        height: 48px !important;
+        max-width: 48px !important;
         padding: 13px 12px !important;
         border-radius: 14px;
         background: var(--bg) !important;
         box-shadow: 0 8px 24px var(--shadow);
-        z-index: 30;
+        z-index: 90 !important;
       }
 
       .sidebar-toggle span {
@@ -1376,20 +1379,14 @@
       }
 
       .kb-sidebar-dim {
-        display: block;
-        position: fixed;
-        inset: 0;
-        z-index: 18;
-        background: rgba(15, 23, 42, 0.46);
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.2s ease;
+        display: none !important;
+        pointer-events: none !important;
       }
 
       html:not([data-sidebar-collapsed="1"]) .kb-sidebar-dim,
       body:not(.sidebar-collapsed) .kb-sidebar-dim {
-        opacity: 1;
-        pointer-events: auto;
+        display: none !important;
+        pointer-events: none !important;
       }
     }
 
@@ -1957,6 +1954,7 @@
           function syncCoverToggleVisibility() {
             var coverInView = isCoverInView();
             document.body.classList.toggle("kb-cover-visible", coverInView);
+            if (window.matchMedia("(max-width: 768px)").matches) return;
             if (coverWasInView === coverInView) return;
             coverWasInView = coverInView;
             if (coverInView) applySidebarCollapsed(true, false);
@@ -2022,9 +2020,18 @@
               sidebarDim.setAttribute("aria-hidden", "true");
               document.body.appendChild(sidebarDim);
             }
-            sidebarDim.addEventListener("click", function () {
+            sidebarDim.addEventListener("click", function (event) {
+              if (event.target.closest && event.target.closest(".sidebar, .sidebar-toggle")) return;
               applySidebarCollapsed(true);
             });
+
+            var sidebarEl = document.querySelector(".sidebar");
+            if (sidebarEl && !sidebarEl.dataset.kbClickBound) {
+              sidebarEl.dataset.kbClickBound = "1";
+              sidebarEl.addEventListener("click", function (event) {
+                event.stopPropagation();
+              });
+            }
 
             syncCoverToggleVisibility();
 
