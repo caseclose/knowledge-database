@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   merge:
-    if: github.event.pull_request.state == 'open' && github.event.pull_request.mergeable != false
+    if: github.event.pull_request.state == 'open'
     runs-on: ubuntu-latest
     steps:
       - name: Ready and merge
