@@ -35,7 +35,7 @@ graph LR
     MCP --> K20["MCP：模型上下文协议"]
     RA --> K22["ReAct：推理与行动"]
     LC --> K23["LangChain：LLM 应用编排"]
-    PI --> K26["Pi vs 其他 coding agent"]
+    PI --> K26["Pi 和其他 agent 的差别"]
     AD --> K27["Agent 设计瓶颈"]
 
     PE --> PE1["vlm-image-captioning"]

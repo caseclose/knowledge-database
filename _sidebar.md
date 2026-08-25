@@ -16,7 +16,7 @@
   - LangChain
     - [LangChain 是什么](agent/langchain/langchain-intro.md)
   - Pi
-    - [Pi vs 其他 coding agent](agent/pi/pi-vs-other-agents.md)
+    - [和其他 coding agent 的差别](agent/pi/pi-vs-other-agents.md)
   - Design
     - [Agent 设计瓶颈](agent/design/agent-design-bottlenecks.md)
 - Prompt Engineering

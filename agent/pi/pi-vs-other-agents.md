@@ -1,4 +1,4 @@
-# Pi 这个 harness 相对其他 coding agent 差在哪？
+# Pi 这个 harness 和其他 coding agent 的差别在哪？
 
 > 创建时间：2026-08-25 ｜ 最新更新：2026-08-25 ｜ 标签：面试
 
