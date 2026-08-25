@@ -600,6 +600,7 @@ function kbSearchPlugin(hook) {
 
     function bindPointer(el, kind, onDelta) {
       el.addEventListener("pointerdown", function (event) {
+        if (window.matchMedia("(max-width: 768px)").matches) return;
         if (event.button) return;
         event.preventDefault();
         event.stopPropagation();
@@ -654,11 +655,12 @@ function kbSearchPlugin(hook) {
       if (event.key === "ArrowDown") { event.preventDefault(); setSearchHeight(h + step); }
     });
 
-    window.addEventListener("resize", function () {
-      setSidebarWidth(preferredWidth(), false);
-      var ph = preferredSearchHeight();
-      if (ph != null) setSearchHeight(ph, false);
-    });
+            window.addEventListener("resize", function () {
+              if (window.matchMedia("(max-width: 768px)").matches) return;
+              setSidebarWidth(preferredWidth(), false);
+              var ph = preferredSearchHeight();
+              if (ph != null) setSearchHeight(ph, false);
+            });
   }
 
   function renderSearchUI() {
@@ -892,7 +894,9 @@ function kbSearchPlugin(hook) {
         event.preventDefault();
         var target = coverVisible && coverInput ? coverInput : sidebarInput;
         if (!coverVisible && document.body.classList.contains("sidebar-collapsed")) {
-          var toggle = document.querySelector(".sidebar-collapse-toggle");
+          var toggle = window.matchMedia("(max-width: 768px)").matches
+            ? document.querySelector(".sidebar-toggle")
+            : document.querySelector(".sidebar-collapse-toggle");
           if (toggle) toggle.click();
         }
         if (target) {

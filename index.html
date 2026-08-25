@@ -1305,7 +1305,7 @@
         --sidebar-width: 100vw !important;
       }
 
-      .sidebar {
+      html body .sidebar {
         position: fixed !important;
         top: 0 !important;
         bottom: 0 !important;
@@ -1340,7 +1340,7 @@
       .sidebar-nav {
         -webkit-overflow-scrolling: touch;
         overscroll-behavior: contain;
-        padding-bottom: max(80px, calc(28px + env(safe-area-inset-bottom))) !important;
+        padding-bottom: max(96px, calc(56px + env(safe-area-inset-bottom))) !important;
       }
 
       .kb-search-kbd,
@@ -2053,7 +2053,8 @@
 
       html:not([data-sidebar-collapsed="1"]) .theme-toggle,
       body:not(.sidebar-collapsed) .theme-toggle {
-        z-index: 70;
+        visibility: hidden;
+        pointer-events: none;
       }
 
       .sidebar-toggle {
@@ -2150,14 +2151,10 @@
           // 封面在首页路由下始终留在 DOM 中（下拉只是滚过它），所以按滚动位置判断封面是否真的在视口内：
           // 能看到封面时隐藏折叠按钮并收起侧栏；滚过封面或进入文档页后按用户偏好恢复。
           var coverWasInView = null;
-          var applySidebarCollapsed = function (collapsed, persist) {
-            document.body.classList.toggle("sidebar-collapsed", collapsed);
-            document.body.classList.remove("close");
-            if (collapsed) document.documentElement.setAttribute("data-sidebar-collapsed", "1");
-            else document.documentElement.removeAttribute("data-sidebar-collapsed");
-            if (persist !== false) {
-              try { localStorage.setItem("kb-sidebar-collapsed", collapsed ? "1" : "0"); } catch (e) {}
-            }
+          var isMobileDrawer = function () {
+            return window.matchMedia("(max-width: 768px)").matches;
+          };
+          var clearDocsifyInlineLayout = function () {
             var content = document.querySelector(".content");
             if (content) {
               content.style.transform = "";
@@ -2170,6 +2167,16 @@
               sidebar.style.left = "";
               sidebar.style.width = "";
             }
+          };
+          var applySidebarCollapsed = function (collapsed, persist) {
+            document.body.classList.toggle("sidebar-collapsed", collapsed);
+            document.body.classList.remove("close");
+            if (collapsed) document.documentElement.setAttribute("data-sidebar-collapsed", "1");
+            else document.documentElement.removeAttribute("data-sidebar-collapsed");
+            if (persist !== false) {
+              try { localStorage.setItem("kb-sidebar-collapsed", collapsed ? "1" : "0"); } catch (e) {}
+            }
+            clearDocsifyInlineLayout();
           };
 
           function preferredCollapsed() {
@@ -2188,15 +2195,55 @@
           function syncCoverToggleVisibility() {
             var coverInView = isCoverInView();
             document.body.classList.toggle("kb-cover-visible", coverInView);
-            if (window.matchMedia("(max-width: 768px)").matches) return;
+            if (isMobileDrawer()) return;
             if (coverWasInView === coverInView) return;
             coverWasInView = coverInView;
             if (coverInView) applySidebarCollapsed(true, false);
             else applySidebarCollapsed(preferredCollapsed(), false);
           }
 
+          function bindDocsifyToggle() {
+            var docsifyToggle = document.querySelector(".sidebar-toggle");
+            if (!docsifyToggle || docsifyToggle.dataset.kbBound) return;
+            docsifyToggle.dataset.kbBound = "1";
+            docsifyToggle.addEventListener("click", function (event) {
+              event.preventDefault();
+              event.stopImmediatePropagation();
+              applySidebarCollapsed(!document.body.classList.contains("sidebar-collapsed"));
+              setTimeout(function () {
+                document.body.classList.remove("close");
+                clearDocsifyInlineLayout();
+              }, 0);
+            }, true);
+          }
+
+          function bindSidebarNavClicks() {
+            var sidebarEl = document.querySelector(".sidebar");
+            if (!sidebarEl || sidebarEl.dataset.kbClickBound) return;
+            sidebarEl.dataset.kbClickBound = "1";
+            sidebarEl.addEventListener("click", function (event) {
+              if (!isMobileDrawer()) return;
+              var target = event.target && event.target.closest ? event.target : null;
+              if (!target) return;
+              if (target.closest(".kb-tag[data-tag]")) return;
+              if (target.closest(".kb-search-brand, .kb-result-item[data-path]")) {
+                applySidebarCollapsed(true);
+                return;
+              }
+              var link = target.closest(".sidebar-nav a");
+              if (!link) return;
+              var parent = link.parentElement;
+              if (parent && parent.classList.contains("folder")) return;
+              var href = link.getAttribute("href") || "";
+              if (href.charAt(0) === "#") applySidebarCollapsed(true);
+            });
+          }
+
           hook.doneEach(function () {
             coverWasInView = null;
+            bindDocsifyToggle();
+            bindSidebarNavClicks();
+            clearDocsifyInlineLayout();
             setTimeout(syncCoverToggleVisibility, 0);
           });
 
@@ -2227,22 +2274,6 @@
             });
             document.body.appendChild(sidebarToggle);
 
-            // Docsify 的左下角按钮也使用同一套状态，避免出现两个互相独立的开关。
-            function bindDocsifyToggle() {
-              var docsifyToggle = document.querySelector(".sidebar-toggle");
-              if (!docsifyToggle || docsifyToggle.dataset.kbBound) return;
-              docsifyToggle.dataset.kbBound = "1";
-              docsifyToggle.addEventListener("click", function (event) {
-                event.preventDefault();
-                event.stopImmediatePropagation();
-                applySidebarCollapsed(!document.body.classList.contains("sidebar-collapsed"));
-                setTimeout(function () {
-                  document.body.classList.remove("close");
-                  var content = document.querySelector(".content");
-                  if (content) content.style.transform = "";
-                }, 0);
-              }, true);
-            }
             bindDocsifyToggle();
             setTimeout(bindDocsifyToggle, 0);
 
@@ -2259,20 +2290,7 @@
               applySidebarCollapsed(true);
             });
 
-            var sidebarEl = document.querySelector(".sidebar");
-            if (sidebarEl && !sidebarEl.dataset.kbClickBound) {
-              sidebarEl.dataset.kbClickBound = "1";
-              sidebarEl.addEventListener("click", function (event) {
-                if (!window.matchMedia("(max-width: 768px)").matches) return;
-                var link = event.target.closest && event.target.closest(".sidebar-nav a");
-                if (!link) return;
-                var parent = link.parentElement;
-                if (parent && parent.classList.contains("folder")) return;
-                var href = link.getAttribute("href") || "";
-                if (href.charAt(0) === "#") applySidebarCollapsed(true);
-              });
-            }
-
+            bindSidebarNavClicks();
             syncCoverToggleVisibility();
 
             var btn = document.createElement("button");
