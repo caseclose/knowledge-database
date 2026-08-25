@@ -1274,18 +1274,21 @@
       }
 
       .sidebar {
-        left: calc(-1 * var(--sidebar-width));
-        width: var(--sidebar-width);
+        left: 0 !important;
+        right: 0 !important;
+        width: 100% !important;
+        max-width: none !important;
+        transform: translateX(-100%) !important;
       }
 
       html[data-sidebar-collapsed="1"] .sidebar,
       body.sidebar-collapsed .sidebar {
-        transform: none;
+        transform: translateX(-100%) !important;
       }
 
       html:not([data-sidebar-collapsed="1"]) body:not(.sidebar-collapsed) .sidebar,
       body:not(.sidebar-collapsed) .sidebar {
-        transform: translateX(var(--sidebar-width));
+        transform: none !important;
       }
 
       .sidebar-collapse-toggle {
@@ -2048,6 +2051,11 @@
         height: 44px;
       }
 
+      html:not([data-sidebar-collapsed="1"]) .theme-toggle,
+      body:not(.sidebar-collapsed) .theme-toggle {
+        z-index: 70;
+      }
+
       .sidebar-toggle {
         border: 1px solid var(--border);
         -webkit-tap-highlight-color: transparent;
@@ -2157,7 +2165,11 @@
               content.style.width = "";
             }
             var sidebar = document.querySelector(".sidebar");
-            if (sidebar) sidebar.style.transform = "";
+            if (sidebar) {
+              sidebar.style.transform = "";
+              sidebar.style.left = "";
+              sidebar.style.width = "";
+            }
           };
 
           function preferredCollapsed() {
@@ -2251,13 +2263,13 @@
             if (sidebarEl && !sidebarEl.dataset.kbClickBound) {
               sidebarEl.dataset.kbClickBound = "1";
               sidebarEl.addEventListener("click", function (event) {
-                event.stopPropagation();
                 if (!window.matchMedia("(max-width: 768px)").matches) return;
                 var link = event.target.closest && event.target.closest(".sidebar-nav a");
                 if (!link) return;
                 var parent = link.parentElement;
                 if (parent && parent.classList.contains("folder")) return;
-                if (link.getAttribute("href")) applySidebarCollapsed(true);
+                var href = link.getAttribute("href") || "";
+                if (href.charAt(0) === "#") applySidebarCollapsed(true);
               });
             }
 
