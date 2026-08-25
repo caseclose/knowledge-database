@@ -27,12 +27,16 @@ graph LR
     Agent --> MCP["mcp"]
     Agent --> RA["react"]
     Agent --> LC["langchain"]
+    Agent --> PI["pi"]
+    Agent --> AD["design"]
     OC --> K2["输出截断与思考超时"]
     GUI --> K7["GUI Agent 研究进展与 Grounding"]
     CC --> K12["Claude Code 工具调用（tool / MCP）"]
     MCP --> K20["MCP：模型上下文协议"]
     RA --> K22["ReAct：推理与行动"]
     LC --> K23["LangChain：LLM 应用编排"]
+    PI --> K26["Pi vs 其他 coding agent"]
+    AD --> K27["Agent 设计瓶颈"]
 
     PE --> PE1["vlm-image-captioning"]
     PE1 --> K3["结构化 Image Captioning"]
@@ -57,6 +61,7 @@ graph LR
     MT --> RLPT["rl-post-training"]
     RLPT --> K13["GRPO 的优势函数"]
     RLPT --> K14["DAPO 与 GRPO 的区别"]
+    RLPT --> K25["SFT vs RL 的 loss"]
     MT --> IE["image-editing"]
     IE --> K15["Qwen-Image-Edit 编辑能力训练"]
     MT --> PT["pytorch"]
@@ -80,8 +85,8 @@ graph LR
 
     class KB root
     class Linux,Agent,PE,Eval,DP,MT,MA category
-    class GPU,OC,GUI,CC,MCP,RA,LC,PE1,EV1,DP1,DP2,DP3,OPD,RLPT,IE,PT,DT,MM,PEnc,MoE,Norm sub
-    class K1,K2,K3,K4,K5,K6,K7,K8,K9,K10,K11,K12,K13,K14,K15,K16,K17,K18,K19,K20,K21,K22,K23,K24 knowledge
+    class GPU,OC,GUI,CC,MCP,RA,LC,PI,AD,PE1,EV1,DP1,DP2,DP3,OPD,RLPT,IE,PT,DT,MM,PEnc,MoE,Norm sub
+    class K1,K2,K3,K4,K5,K6,K7,K8,K9,K10,K11,K12,K13,K14,K15,K16,K17,K18,K19,K20,K21,K22,K23,K24,K25,K26,K27 knowledge
 
     click K1 href "#/linux/gpu/fuser-vs-pkill-release-gpu-memory"
     click K2 href "#/agent/opencode/output-truncation-and-thinking-timeout"
@@ -107,6 +112,9 @@ graph LR
     click K22 href "#/agent/react/react-reasoning-and-acting"
     click K23 href "#/agent/langchain/langchain-intro"
     click K24 href "#/model-architecture/normalization/batchnorm-layernorm-prenorm-postnorm"
+    click K25 href "#/model-training/rl-post-training/sft-vs-rl-loss"
+    click K26 href "#/agent/pi/pi-vs-other-agents"
+    click K27 href "#/agent/design/agent-design-bottlenecks"
 ```
 
 > 点击图中蓝色边框的知识条目可直接跳转阅读。
@@ -248,3 +256,6 @@ knowledge-database/
 | `agent/react/react-reasoning-and-acting.md` | ReAct：Thought / Action / Observation 交错循环，手写 parse + 工具执行 |
 | `agent/langchain/langchain-intro.md` | LangChain：LCEL 编排线性流程，`create_agent` 跑在 LangGraph 上，LangSmith 观测 |
 | `model-architecture/normalization/batchnorm-layernorm-prenorm-postnorm.md` | 两轴：BN/LN 是统计范围，Pre/Post 是残差内外；RMSNorm = 不减均值的 LN，现代 LLM 默认 |
+| `model-training/rl-post-training/sft-vs-rl-loss.md` | SFT 是金标上权重为 1 的 NLL；RL 是 $A\nabla\log\pi$；SFT 改写成策略梯度会多 $1/\pi_\theta$ |
+| `agent/pi/pi-vs-other-agents.md` | Pi：四工具 + ~1K 提示的极简 harness，上下文税低但无权限/MCP/Plan，默认 YOLO |
+| `agent/design/agent-design-bottlenecks.md` | Agent 主瓶颈：context rot、长程误差复合、假完成、脏环境/安全、稀疏训练与评测 |

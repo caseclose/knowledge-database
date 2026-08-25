@@ -15,6 +15,10 @@
     - [推理与行动交错](agent/react/react-reasoning-and-acting.md)
   - LangChain
     - [LangChain 是什么](agent/langchain/langchain-intro.md)
+  - Pi
+    - [Pi vs 其他 coding agent](agent/pi/pi-vs-other-agents.md)
+  - Design
+    - [Agent 设计瓶颈](agent/design/agent-design-bottlenecks.md)
 - Prompt Engineering
   - VLM Image Captioning
     - [结构化 Image Captioning](prompt-engineering/vlm-image-captioning/structured-image-captioning.md)
@@ -51,6 +55,7 @@
   - RL Post-Training
     - [GRPO 的优势函数](model-training/rl-post-training/grpo-advantage-function.md)
     - [DAPO 与 GRPO 的区别](model-training/rl-post-training/dapo-vs-grpo.md)
+    - [SFT vs RL 的 loss](model-training/rl-post-training/sft-vs-rl-loss.md)
   - Image Editing
     - [Qwen-Image-Edit 编辑能力训练](model-training/image-editing/qwen-image-edit-training.md)
   - PyTorch
