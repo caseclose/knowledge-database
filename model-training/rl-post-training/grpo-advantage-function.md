@@ -4,7 +4,7 @@
 
 GRPO（Group Relative Policy Optimization，DeepSeekMath 提出，DeepSeek-R1 沿用）是当前 LLM RL 后训练的主流算法之一。相对 PPO 最大的改动： **扔掉 critic（value 网络）**，改用「同一 prompt 下一组回答互相比较」来估计优势（advantage）。
 
-配套阅读：[DAPO 与 GRPO 的区别](#/model-training/rl-post-training/dapo-vs-grpo)（DAPO 的优势函数与 GRPO 相同，改的是 clip / 采样 / loss 聚合 / 超长整形，并去掉 KL）。
+配套阅读：[DAPO 与 GRPO 的区别](/model-training/rl-post-training/dapo-vs-grpo.md)（DAPO 的优势函数与 GRPO 相同，改的是 clip / 采样 / loss 聚合 / 超长整形，并去掉 KL）。
 
 ## 为什么要换掉 PPO 的 critic
 
@@ -168,7 +168,7 @@ $$
 \frac{1}{G}\sum_{i=1}^{G}\frac{1}{|o_i|}\sum_{t=1}^{|o_i|} \ell_{i,t}
 $$
 
-每条回答权重 $1/G$，与长度无关。长度为 $L$ 的回答里，单个 token 的权重是 $1/(G L)$。长 CoT 里真正带来奖励的推理模式，被长度摊薄；又臭又长的重复、胡话，每个垃圾 token 的惩罚也偏弱。这是 DAPO 改成「所有 token 一视同仁平均」的原因，细节见 [DAPO 文](#/model-training/rl-post-training/dapo-vs-grpo)。
+每条回答权重 $1/G$，与长度无关。长度为 $L$ 的回答里，单个 token 的权重是 $1/(G L)$。长 CoT 里真正带来奖励的推理模式，被长度摊薄；又臭又长的重复、胡话，每个垃圾 token 的惩罚也偏弱。这是 DAPO 改成「所有 token 一视同仁平均」的原因，细节见 [DAPO 文](/model-training/rl-post-training/dapo-vs-grpo.md)。
 
 ## 关键坑：std = 0 时整组没有梯度
 
