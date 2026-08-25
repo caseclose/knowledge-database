@@ -26,11 +26,13 @@ graph LR
     Agent --> CC["claude-code"]
     Agent --> MCP["mcp"]
     Agent --> RA["react"]
+    Agent --> LC["langchain"]
     OC --> K2["输出截断与思考超时"]
     GUI --> K7["GUI Agent 研究进展与 Grounding"]
     CC --> K12["Claude Code 工具调用（tool / MCP）"]
     MCP --> K20["MCP：模型上下文协议"]
     RA --> K22["ReAct：推理与行动"]
+    LC --> K23["LangChain：LLM 应用编排"]
 
     PE --> PE1["vlm-image-captioning"]
     PE1 --> K3["结构化 Image Captioning"]
@@ -68,6 +70,8 @@ graph LR
     PEnc --> K18["图像 vs 文本位置编码"]
     MA --> MoE["moe"]
     MoE --> K19["MoE 混合专家架构介绍"]
+    MA --> Norm["normalization"]
+    Norm --> K24["BN / LN / PreNorm / PostNorm"]
 
     classDef root fill:#2c7be5,color:#fff,stroke:none
     classDef category fill:#eef4ff,color:#2c7be5,stroke:#2c7be5,stroke-width:2px
@@ -76,8 +80,8 @@ graph LR
 
     class KB root
     class Linux,Agent,PE,Eval,DP,MT,MA category
-    class GPU,OC,GUI,CC,MCP,RA,PE1,EV1,DP1,DP2,DP3,OPD,RLPT,IE,PT,DT,MM,PEnc,MoE sub
-    class K1,K2,K3,K4,K5,K6,K7,K8,K9,K10,K11,K12,K13,K14,K15,K16,K17,K18,K19,K20,K21,K22 knowledge
+    class GPU,OC,GUI,CC,MCP,RA,LC,PE1,EV1,DP1,DP2,DP3,OPD,RLPT,IE,PT,DT,MM,PEnc,MoE,Norm sub
+    class K1,K2,K3,K4,K5,K6,K7,K8,K9,K10,K11,K12,K13,K14,K15,K16,K17,K18,K19,K20,K21,K22,K23,K24 knowledge
 
     click K1 href "#/linux/gpu/fuser-vs-pkill-release-gpu-memory"
     click K2 href "#/agent/opencode/output-truncation-and-thinking-timeout"
@@ -101,6 +105,8 @@ graph LR
     click K20 href "#/agent/mcp/model-context-protocol-intro"
     click K21 href "#/model-training/pytorch/eval-vs-train"
     click K22 href "#/agent/react/react-reasoning-and-acting"
+    click K23 href "#/agent/langchain/langchain-intro"
+    click K24 href "#/model-architecture/normalization/batchnorm-layernorm-prenorm-postnorm"
 ```
 
 > 点击图中蓝色边框的知识条目可直接跳转阅读。
@@ -240,3 +246,5 @@ knowledge-database/
 | `agent/mcp/model-context-protocol-intro.md` | MCP：host/client/server 的 JSON-RPC 插座，tools/resources/prompts，stdio 与 Streamable HTTP |
 | `model-training/pytorch/eval-vs-train.md` | `eval()` / `train()` 只切 Dropout/BN 模式，不关梯度；推理要配 `no_grad()` |
 | `agent/react/react-reasoning-and-acting.md` | ReAct：Thought / Action / Observation 交错循环，手写 parse + 工具执行 |
+| `agent/langchain/langchain-intro.md` | LangChain：LCEL 编排线性流程，`create_agent` 跑在 LangGraph 上，LangSmith 观测 |
+| `model-architecture/normalization/batchnorm-layernorm-prenorm-postnorm.md` | 两轴：BN/LN 是统计范围，Pre/Post 是残差内外；RMSNorm = 不减均值的 LN，现代 LLM 默认 |
