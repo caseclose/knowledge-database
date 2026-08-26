@@ -95,6 +95,8 @@ DAPO 把上下沿拆开，典型 $\varepsilon_{\mathrm{low}}=0.2$、$\varepsilon
 
 消融上 36→38，幅度不大，却是后面探索还能继续的前提。没有它，动态采样也只是在近乎重复的回答里挑。
 
+clip 卡住的是概率比 $r$，不是「这份回答太好了就扔掉」。越界的 token 停止继续强化，这条 rollout 仍留在 batch 里。详见 [GRPO 文「超过 clip 会丢掉吗」](/model-training/rl-post-training/grpo-advantage-function.md)。
+
 ## 2. Dynamic Sampling：只练「既会又不会」的题
 
 八个答案全对 $R=[1,1,1,1,1,1,1,1]$，每个都等于平均值，$\hat{A}_i\approx 0$。全错也一样。没有谁比谁好，loss 几乎没有学习信号。
