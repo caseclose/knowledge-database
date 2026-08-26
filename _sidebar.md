@@ -53,7 +53,7 @@
   - On-Policy Distillation
     - [OPD：从 LLM 到 Flow Matching](model-training/on-policy-distillation/opd-from-llm-to-flow-matching.md)
   - RL Post-Training
-    - [GRPO 的优势函数与 Loss](model-training/rl-post-training/grpo-advantage-function.md)
+    - [GRPO：组内比较代替 critic](model-training/rl-post-training/grpo-advantage-function.md)
     - [DAPO 与 GRPO 的区别](model-training/rl-post-training/dapo-vs-grpo.md)
     - [SFT vs RL 的 loss](model-training/rl-post-training/sft-vs-rl-loss.md)
   - Image Editing
