@@ -41,6 +41,8 @@
 - Model Architecture
   - Diffusion Transformer
     - [MMDiT 结构](model-architecture/diffusion-transformer/mmdit-structure.md)
+  - Diffusion
+    - [CFG（Classifier-Free Guidance）](model-architecture/diffusion/classifier-free-guidance.md)
   - Multimodal
     - [Qwen3-VL 图像信息如何进入 LLM](model-architecture/multimodal/qwen3-vl-vision-injection.md)
   - Positional Encoding
