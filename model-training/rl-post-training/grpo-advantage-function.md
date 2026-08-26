@@ -1,192 +1,140 @@
-# GRPO 的优势函数是怎么算的？
+# GRPO 在做什么？用组内比较代替 critic
 
-> 创建时间：2026-08-20 ｜ 最新更新：2026-08-25 ｜ 标签：面试、后训练
+> 创建时间：2026-08-20 ｜ 最新更新：2026-08-26 ｜ 标签：面试、训练
 
-GRPO（Group Relative Policy Optimization，DeepSeekMath 提出，DeepSeek-R1 沿用）是当前 LLM RL 后训练的主流算法之一。相对 PPO 最大的改动： **扔掉 critic（value 网络）**，改用「同一 prompt 下一组回答互相比较」来估计优势（advantage）。
+对同一道题生成多份答案，比较谁比「同组平均水平」更好；提高好答案里 token 的概率，降低差答案里 token 的概率，同时限制模型每次不要改得过猛。
 
-配套阅读：[DAPO 与 GRPO 的区别](/model-training/rl-post-training/dapo-vs-grpo.md)（DAPO 的优势函数与 GRPO 相同，改的是 clip / 采样 / loss 聚合 / 超长整形，并去掉 KL）。
+GRPO（Group Relative Policy Optimization）由 [DeepSeekMath](https://arxiv.org/abs/2402.03300) 提出，DeepSeek-R1 沿用。它相对 PPO 最大的改动，就是**扔掉 critic（value 网络）**，改用「同一道题下的一组回答互相比较」来估计优势。
 
-## 为什么要换掉 PPO 的 critic
+配套阅读：[DAPO 与 GRPO 的区别](/model-training/rl-post-training/dapo-vs-grpo.md)。DAPO 的优势算法没换，改的是 clip、采样、loss 怎么平均，以及超长回答怎么给分。
 
-PPO 是 actor-critic：policy $\pi_\theta$ 出 token，value 网络 $V_\psi(s)$ 估「这个前缀还值多少」，再用 GAE 算逐步优势 $A_t$。LLM 里这套有两个硬伤：
+## 先建立画面
 
-1. **显存**：value 网络通常和 policy 同规模，等于再挂一个大模型。
-2. **信号稀疏**：奖励往往只打在**整段回答的最后一个 token**（对错、偏好分），中间 token 没有逐步回报。要让 $V_\psi$ 在每个前缀上都准，很难训。
+想象给模型同一道数学题，让它答 $G$ 遍（常见 $8$ 或 $16$ 遍）。每份答案打一个分 $R_i$（对了 $+1$，错了 $-1$，或由奖励模型打分）。然后问：
 
-优势的本质是「这个动作比平均水平好多少」。PPO 用 $V_\psi$ 当平均水平；GRPO 换成：**同一道题再采样 $G$ 个回答，用这 $G$ 个分数的均值当平均水平**。
+> 这份答案比**这道题上其他几份**更好，还是更差？
 
-## 采样设定：先把每个符号钉死
+比同组平均好，就提高这份答案里那些 token 的概率；比平均差，就压低。这就是「组内相对优势」。不需要再训一个和 policy 一样大的 value 网络，去估「这个前缀还值多少」。
 
-对数据集里的一道题 $q$，用**采样时冻结的旧策略** $\pi_{\theta_{\mathrm{old}}}$ 采一组回答：
+PPO 用学出来的 $V(s)$ 当「平均水平」；GRPO 用**同题其他回答的平均分**当「平均水平」。显存省一块，工程也简单。
 
-$$
-\{o_1, o_2, \ldots, o_G\} \sim \pi_{\theta_{\mathrm{old}}}(\cdot \mid q)
-$$
-
-| 符号 | 含义 |
-|------|------|
-| $q$ | 题 / prompt |
-| $o_i$ | 第 $i$ 个完整回答（token 序列） |
-| $o_{i,t}$ | $o_i$ 的第 $t$ 个 token |
-| $o_{i,<t}$ | 它前面的前缀 |
-| $G$ | 组大小。DeepSeekMath 用 $64$；后来 R1 / DAPO 常见 $8$ 或 $16$ |
-| $\pi_{\theta_{\mathrm{old}}}$ | **采样策略**，rollout 期间冻结 |
-| $\pi_\theta$ | **正在更新的策略**。采完一组后可对同一批数据做 $\mu$ 次梯度步，$\theta$ 会离开 $\theta_{\mathrm{old}}$ |
-| $\pi_{\mathrm{ref}}$ | **参考策略**，通常是 RL 开始时的 SFT / base，整段训练冻结，只用来算 KL |
-
-奖励函数给每个回答一个标量（奖励模型打分，或规则：对了 $1$、错了 $0$ / $-1$）：
+## 优势：谁比同组平均更好
 
 $$
-\mathbf{r} = \{r_1, \ldots, r_G\}, \qquad r_i = R(q, o_i)
+\hat{A}_i
+=
+\frac{R_i - \operatorname{mean}(R_1,\ldots,R_G)}
+{\operatorname{std}(R_1,\ldots,R_G)}
 $$
 
-$r_i$ 是**序列级**分数，不是逐步奖励。这是后面「一条回答里每个 token 共用同一个 $A$」的根源。
+| 符号 | 通俗含义 |
+|------|----------|
+| $R_i$ | 第 $i$ 份答案的奖励（整份一个分，不是逐步分） |
+| $\operatorname{mean}$ | 这道题上 $G$ 份答案的平均分，当作「一般能得几分」 |
+| $\operatorname{std}$ | 这组分数散得有多开。除以它，是为了让不同题、不同奖励尺度的更新幅度差不多 |
+| $\hat{A}_i$ | 这份答案相对同组好多少。正：加强；负：压低 |
 
-## 优势函数：组内 z-score
+例如同一道题四个答案 $R=[1,1,-1,-1]$：均值 $0$，标准差 $1$，优势就是 $[+1,+1,-1,-1]$。两个对的被加强，两个错的被压低。
 
-Outcome supervision（最常用、面试默认问这个）把 $r_i$ 做成组内标准化，再**复制到该回答的每一个 token** 上：
+基线是「**这道题**大约得几分」，不是全数据集的平均分。很难的题里，四个里唯一接近正确的那个，也会拿到大正优势。
 
-$$
-\hat{A}_{i,t} = \tilde{r}_i = \frac{r_i - \operatorname{mean}(\mathbf{r})}{\operatorname{std}(\mathbf{r})}
-$$
+### 为什么整份答案共用同一个 $\hat{A}$
 
-$\hat{A}_{i,t}$ 对固定的 $i$、任意 $t$ 都相同。写法带下标 $t$，只是为了后面能塞进逐 token 的 PPO clip。
+奖励通常只打在最终答案上（对 / 错）。中间哪一步推理立了功，模型并不知道。GRPO 的处理是：整份回答里每个 token 都挂上同一个 $\hat{A}_i$。
 
-| 符号 | 含义 | 设计作用 |
-|------|------|----------|
-| $r_i$ | 回答 $o_i$ 的原始奖励 | 绝对好坏；尺度随 RM / 规则而变 |
-| $\operatorname{mean}(\mathbf{r})$ | 组内均值 $\frac{1}{G}\sum_j r_j$ | **基线**。替代 PPO 的 $V(s)$：这道题「一般能得几分」 |
-| $r_i - \operatorname{mean}(\mathbf{r})$ | 相对组内平均好多少 | 比平均好 → 正优势（强化）；差 → 负优势（抑制） |
-| $\operatorname{std}(\mathbf{r})$ | 组内标准差 | 把不同题、不同奖励尺度拉到同一量级，梯度不跟着 $r$ 的绝对值飘 |
-| $\hat{A}_{i,t}$ | token $t$ 的优势估计 | 策略梯度里「这个 token 该被加强还是压低、力度多大」 |
+所以它知道「整份好不好」，**不知道具体是哪一步带来了成功**。前面写对、最后抄错，前面的 token 也会被连坐。这是 credit assignment 很粗的版本。面试默认问的就是这个（outcome supervision）。
 
-数值例子：$G=4$，规则奖励对 $1$、错 $0$，$\mathbf{r}=\{1,1,0,0\}$。
+（DeepSeekMath 还写过逐步打分的 process supervision，工业界长思维链训练多数仍用最终对错。）
 
-$$
-\operatorname{mean}=0.5,\quad \operatorname{std}=0.5,\quad \hat{A} = \{+1,+1,-1,-1\}
-$$
+### 全对或全错时：没有谁比谁好
 
-两个对的回答里每个 token 都吃 $+1$，两个错的都吃 $-1$。基线是「这道题大约对一半」，不是「全世界所有题的平均分」。
+若 $R=[1,1,1,1]$ 或全是错的，每个 $R_i$ 都等于均值，$\hat{A}_i=0$。这组对模型几乎没有学习信号，采样算力白花。训练越往后，简单题「组内全对」越多。DAPO 的动态采样就是专治这个。
 
-### 分子：为什么用组内均值当基线
+## Loss 在做什么
 
-策略梯度 $\nabla_\theta \log \pi_\theta \cdot r$ 方差很大。减一个**不依赖当前动作**的基线 $b$，期望不变、方差下降。合法基线很多（常数、$V(s)$、同题其他样本的平均）。GRPO 选最后一种，因为：
-
-- 同一 $q$ 下采样，难度、题型都对齐，均值是这道题的公平参照；
-- 奖励模型本身常在「同一题的回答两两比较」上训练，组内相对更贴它的语义；
-- 不另训一个网络。
-
-只关心组内相对好坏：**一道很难的题，4 个回答里唯一接近正确的那个也会拿到大正优势**；一道送分题，4 个全对则相对优势全是 $0$（见下文 std=0）。
-
-### 分母：为什么还要除以 std
-
-不同题的奖励尺度差一截：规则奖励可能是 $\{0,1\}$，RM 可能是 $[-5,5]$。不除 std，梯度幅度跟奖励量纲走，Adam 也救不了题与题之间的相对步长。除完之后，一组里大约是「均值 $0$、方差 $1$ 的相对成绩」，各题梯度量级可比。
-
-实现里分母常写成 $\operatorname{std}(\mathbf{r}) + \epsilon$（如 $10^{-8}$），防除零；**数值上稳住不等于有学习信号**——std 真为 $0$ 时，分子也是 $0$，$\hat{A}$ 仍全是 $0$。
-
-### 为什么一条回答里每个 token 的 $A$ 都一样
-
-Outcome 奖励只在序列末尾出现一次，中间 token 没有逐步回报，也没有 critic 把这个终端奖励往回传。GRPO 的处理是：**整条轨迹共用同一个相对成绩**。对了，这条 CoT 上每个 token 都被加强；错了，整条都被压。
-
-这是 credit assignment 很粗的版本：一个关键推理错误会连累前面写对的步骤，一段正确推导若最后抄答案抄错，前面 token 也会吃负优势。DeepSeekMath 还写过 **process supervision**：逐步打分，token $t$ 的优势是「它之后所有步骤标准化奖励之和」
+论文写的是**最大化** $J$；代码里通常最小化 $L=-J$。
 
 $$
-\hat{A}_{i,t} = \sum_{\mathrm{index}(j) \ge t} \tilde{r}_i^{\mathrm{index}(j)}
+J_{\mathrm{GRPO}}
+=
+\frac{1}{G}\sum_{i=1}^{G}\frac{1}{T_i}
+\sum_{t=1}^{T_i}
+\min\bigl[
+r_{i,t}\,\hat{A}_i,\;
+\operatorname{clip}(r_{i,t},1-\varepsilon,1+\varepsilon)\,\hat{A}_i
+\bigr]
+-\beta\, D_{\mathrm{KL}}
 $$
 
-工业界 long-CoT（R1-Zero / DAPO）多数仍用 outcome + 规则奖励。面试先把 outcome 这条讲清楚。
+| 符号 | 通俗含义 |
+|------|----------|
+| $G$ | 同一道题生成多少份答案 |
+| $T_i$ | 第 $i$ 份答案有多少个 token |
+| $\hat{A}_i$ | 这份答案相对同组好多少（见上） |
+| $r_{i,t}$ | 新模型与旧模型生成该 token 的概率之比 |
+| $\operatorname{clip}$ | 限制一次更新的幅度 |
+| $\beta D_{\mathrm{KL}}$ | 防止离初始参考模型太远 |
 
-## 目标函数 / Loss：clip 完再减 KL
-
-训练时**最大化**下面的替代目标（实现里对 $J$ 取负当 loss 再反传）：
-
-$$
-\begin{aligned}
-\mathcal{J}_{\mathrm{GRPO}}(\theta)
-&= \mathbb{E}_{q \sim P(Q),\; \{o_i\}_{i=1}^{G} \sim \pi_{\theta_{\mathrm{old}}}(\cdot \mid q)} \Bigg[
-\frac{1}{G} \sum_{i=1}^{G} \frac{1}{|o_i|} \sum_{t=1}^{|o_i|} \Big(
-\min\big(\rho_{i,t}(\theta)\,\hat{A}_{i,t},\;
-\operatorname{clip}(\rho_{i,t}(\theta), 1-\varepsilon, 1+\varepsilon)\,\hat{A}_{i,t}\big)
-\\
-&\qquad\qquad\qquad\qquad\qquad\qquad
-- \beta\, \mathbb{D}_{\mathrm{KL}}[\pi_\theta \parallel \pi_{\mathrm{ref}}]
-\Big)
-\Bigg]
-\end{aligned}
-$$
-
-重要性采样比：
+可以记成：
 
 $$
-\rho_{i,t}(\theta) = \frac{\pi_\theta(o_{i,t} \mid q, o_{i,<t})}{\pi_{\theta_{\mathrm{old}}}(o_{i,t} \mid q, o_{i,<t})}
+\text{奖励组内好答案}
+-\text{惩罚组内差答案}
+-\text{过度偏离参考模型}
 $$
 
-KL 用 Schulman 的无偏、恒非负估计（不把 KL 塞进奖励，以免污染 $\hat{A}$）：
+### 概率比 $r$：新模型更喜欢这个 token 了吗
 
 $$
-\mathbb{D}_{\mathrm{KL}}[\pi_\theta \parallel \pi_{\mathrm{ref}}]
-= \frac{\pi_{\mathrm{ref}}(o_{i,t}\mid q,o_{i,<t})}{\pi_\theta(o_{i,t}\mid q,o_{i,<t})}
-- \log\frac{\pi_{\mathrm{ref}}(o_{i,t}\mid q,o_{i,<t})}{\pi_\theta(o_{i,t}\mid q,o_{i,<t})}
-- 1
+r_{i,t}
+=
+\frac{\pi_\theta(o_{i,t}\mid q,o_{i,<t})}
+{\pi_{\theta_{\mathrm{old}}}(o_{i,t}\mid q,o_{i,<t})}
 $$
 
-### 每个量代表什么
+旧模型生成某个 token 的概率是 $0.1$，新模型变成 $0.12$，则 $r=1.2$。
 
-| 符号 | 含义 | 设计作用 |
-|------|------|----------|
-| $\mathbb{E}_{q,\{o_i\}}$ | 对题、对一组 rollout 求期望 | 数据从 $\pi_{\theta_{\mathrm{old}}}$ 采样，是 on-policy（可带多次更新的「近 on-policy」） |
-| $\frac{1}{G}\sum_i$ | 组内 $G$ 条回答先平等平均 | **样本级**聚合的外层：一条长回答和一条短回答权重相同 |
-| $\frac{1}{\lvert o_i \rvert}\sum_t$ | 回答内部再按 token 平均 | 长回答里每个 token 的权重被长度稀释（DAPO 改掉的正是这一层） |
-| $\rho_{i,t}(\theta)$ | 新策略 vs 采样策略，对该 token 的概率比 | 采的是 $\pi_{\theta_{\mathrm{old}}}$，梯度却对 $\pi_\theta$。刚采完、第一次更新时 $\rho=1$；同一批数据更新多次后 $\rho$ 偏离 $1$，重要性采样用来纠偏 |
-| $\hat{A}_{i,t}$ | 上文的组内 z-score | 正：抬高该 token 概率；负：压低 |
-| $\varepsilon$ | clip 半宽，常用 $0.2$ | 把 $\rho$ 限制在 $[1-\varepsilon,1+\varepsilon]$，单步策略别跑太远 |
-| $\min(\rho A,\;\operatorname{clip}(\rho) A)$ | PPO clipped surrogate | 取悲观的一边，限制「顺优势方向」的过大更新，反向错误不保护 |
-| $\beta$ | KL 强度。DeepSeekMath 用 $0.04$ | 越大越贴 $\pi_{\mathrm{ref}}$，越不敢学新推理模式 |
-| $\mathbb{D}_{\mathrm{KL}}$ | 逐 token 的 KL 估计 | 防止 reward hacking / 语言崩坏；long-CoT 里 DAPO 认为这项过强，直接去掉 |
+- $r>1$：新模型更喜欢这个 token
+- $r<1$：新模型更不喜欢
+- $r=1$：没变（刚采完、第一次更新时通常就是这样）
 
-对应到实现，一条回答上的 **token loss**（注意前面有个负号，因为框架最小化 loss）：
+数据是旧模型 $\pi_{\theta_{\mathrm{old}}}$ 采的，梯度却作用在正在更新的 $\pi_\theta$ 上，所以要用这个比值纠偏。
 
-$$
-\ell_{i,t} = -\min\big(\rho_{i,t}\hat{A}_{i,t},\; \operatorname{clip}(\rho_{i,t},1-\varepsilon,1+\varepsilon)\hat{A}_{i,t}\big) + \beta\, \hat{D}_{\mathrm{KL},i,t}
-$$
+### 为什么需要 clip
 
-整组再按「先回答内平均、再对 $G$ 条平均」合成标量。
+$\varepsilon=0.2$ 时，有效的 $r$ 被卡在 $[0.8, 1.2]$。直觉是：
 
-### Clip 在正负优势下分别卡什么
+> 可以奖励好答案、惩罚差答案，但一次不要把概率改得太夸张。
 
-$\operatorname{clip}(\rho, 1-\varepsilon, 1+\varepsilon)$ 把概率比卡在 $[0.8, 1.2]$（$\varepsilon=0.2$ 时）。$\min$ 使得：
+- 好答案（$\hat{A}>0$）：鼓励提高概率，有效奖励通常到 $1.2$ 就封顶。
+- 差答案（$\hat{A}<0$）：鼓励降低概率，有效惩罚通常到 $0.8$ 就停止，避免坏 token 被一次性压到 $0$。
+- $\min$ 在「原始目标」和「截断后的目标」里选更保守的那个。走错方向（好 token 的概率下降、坏 token 的概率上升）不保护，完整拉回来。
 
-- $\hat{A}>0$（好回答，想抬概率）：只有 **上沿** $1+\varepsilon$ 生效。$\rho$ 再大，目标最多按 $(1+\varepsilon)\hat{A}$ 计，梯度不再鼓励把已经很高的 $\rho$ 继续抬。低概率的「探索 token」想从 $0.01$ 抬到有意义的值，上沿很紧（$0.01\times 1.2=0.012$），这是 DAPO Clip-Higher 要松的地方。
-- $\hat{A}<0$（差回答，想压概率）：只有 **下沿** $1-\varepsilon$ 生效。$\rho$ 掉破 $0.8$ 之后不再额外得分，避免坏 token 被一次性压到 $0$、词表坍缩。
-- 走错方向（好 token 的 $\rho$ 下降、坏 token 的 $\rho$ 上升）**不 clip**，完整梯度把它拉回来。
+低概率的探索 token 想从 $0.01$ 抬起来，上沿很紧（$0.01\times 1.2=0.012$）。这是 DAPO 要把上沿放松的原因。
 
-### 聚合方式：样本级平均意味着什么
-
-GRPO 是
+### KL：一根安全绳
 
 $$
-\frac{1}{G}\sum_{i=1}^{G}\frac{1}{|o_i|}\sum_{t=1}^{|o_i|} \ell_{i,t}
+-\beta\, D_{\mathrm{KL}}(\pi_\theta \parallel \pi_{\mathrm{ref}})
 $$
 
-每条回答权重 $1/G$，与长度无关。长度为 $L$ 的回答里，单个 token 的权重是 $1/(G L)$。长 CoT 里真正带来奖励的推理模式，被长度摊薄；又臭又长的重复、胡话，每个垃圾 token 的惩罚也偏弱。这是 DAPO 改成「所有 token 一视同仁平均」的原因，细节见 [DAPO 文](/model-training/rl-post-training/dapo-vs-grpo.md)。
+$\pi_{\mathrm{ref}}$ 一般是 RL 开始时的 SFT / base，整段训练冻住。$\beta$ 越大，模型越不敢离原点。DeepSeekMath 用 $\beta=0.04$。
 
-## 关键坑：std = 0 时整组没有梯度
+可以为了推理改变模型，但不要离原来的参考模型太远——防止语言崩坏、乱 hack 奖励。长思维链里 DAPO 认为这根绳子太紧，整项去掉。
 
-若 $G$ 个奖励全相同（全对或全错），则 $\operatorname{mean}=r_i$、$\operatorname{std}=0$，于是 $\hat{A}_{i,t}=0$。clip 项是 $0$，KL 若 $\pi_\theta\approx\pi_{\mathrm{ref}}$ 也接近 $0$，**这组对 policy 的有效梯度为零**，采样算力白花。
+### 每份回答权重相同
 
-训练越往后，简单题「组内全对」越多，一个 batch 里有效 prompt 比例下降，梯度更噪、更弱。DAPO 的 Dynamic Sampling 专门丢掉这些组，直到凑满「有对有错」的 batch。
+前面的 $\dfrac{1}{G}\sum_i\dfrac{1}{T_i}\sum_t$ 意思是：先在一份回答内部把 token 平均掉，再对 $G$ 份回答平均。**每份回答最终权重一样**，和长短无关。
 
-## 和 PPO 对照（面试一张表）
+一份 $100$ token、一份 $1000$ token，各占约一半。长回答里每个 token 的权重只有短回答里每个 token 的约 $1/10$。长思维链里真正有用的推理，会被长度摊薄；又臭又长的重复，每个垃圾 token 的惩罚也偏弱。DAPO 改的就是这一层。
+
+## 和 PPO 差在哪
 
 | | PPO | GRPO |
 |--|-----|------|
-| 基线 | 学出来的 $V_\psi(s)$ | 同 prompt 组内 $\operatorname{mean}(\mathbf{r})$ |
-| 优势 | GAE，逐步、token 不同 | 组内 z-score，outcome 下整句相同 |
-| 额外网络 | policy + critic（+ 常还有 RM） | 只有 policy（RM 可换成规则） |
-| KL | 常加在逐步奖励里 | 加在 loss 里，不进 $\hat{A}$ |
-| 聚合 | 通常 token 平均 | 样本内 token 平均，再对样本平均 |
-| 代价 | critic 显存、价值估计不准 | 每题要采 $G$ 次；std=0 无信号 |
+| 「平均水平」从哪来 | 另训一个 $V(s)$ | 同题 $G$ 份答案的平均分 |
+| 优势细到哪 | GAE，逐步、各 token 可不同 | 组内标准化，整份答案通常相同 |
+| 额外网络 | policy + critic | 只有 policy |
+| 代价 | critic 又贵又难训准 | 每题要采 $G$ 次；全对/全错时没信号 |
 
-## 总结
-
-> **一句话：** GRPO 的优势是组内 z-score $\hat{A}_{i,t}=(r_i-\mathrm{mean})/\mathrm{std}$，用同题 $G$ 个回答的相对成绩代替 PPO 的 value 网络；loss 仍是 PPO 的 $\rho A$ + 对称 clip，外加 $\beta\,\mathrm{KL}$，并按「先句内平均、再句间平均」聚合——省一个 critic，但 std=0 时整组没有梯度，长回答里的 token 还会被长度稀释。
+> **一句话：** 同一道题多答几遍，比同组平均好的加强、差的压低；用对称 clip 和 KL 防止一次改太猛、离参考模型太远。省掉 critic，但整份答案共用一个优势，全对或全错时学不到东西。
