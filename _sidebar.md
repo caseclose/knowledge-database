@@ -39,6 +39,8 @@
     - [双节点 GLM-5.2 TP=16 部署](model-serving/vllm/glm52-dual-node-tp16-deploy.md)
     - [GLM-5.2 部署五坑](model-serving/vllm/glm52-deploy-gotchas.md)
 - Model Architecture
+  - Attention
+    - [Multi-Head Attention 代码与细节](model-architecture/attention/multihead-attention.md)
   - Diffusion Transformer
     - [MMDiT 结构](model-architecture/diffusion-transformer/mmdit-structure.md)
   - Diffusion
