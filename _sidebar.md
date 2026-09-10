@@ -41,6 +41,8 @@
 - Model Architecture
   - Attention
     - [Multi-Head Attention 代码与细节](model-architecture/attention/multihead-attention.md)
+  - WeLM
+    - [各规格总参与激活参](model-architecture/welm/welm-parameter-scales.md)
   - Diffusion Transformer
     - [MMDiT 结构](model-architecture/diffusion-transformer/mmdit-structure.md)
   - Diffusion
