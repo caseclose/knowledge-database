@@ -2,7 +2,7 @@
 
 > 创建时间：2026-09-10 ｜ 最新更新：2026-09-10 ｜ 标签：面试
 
-面试常要求当场写出 Multi-Head Attention，并追问三件事：**dropout 加在哪**、**为什么 `transpose(1, 2)`**、**为什么除以 $\sqrt{d_k}$**。公式本身很短：
+面试常要求当场写出 Multi-Head Attention，并追问三件事：dropout 加在哪、为什么要转置、为什么除以根号 head dimension。公式本身很短：
 
 $$
 \mathrm{Attention}(Q,K,V)=\mathrm{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}\right)V
@@ -10,7 +10,7 @@ $$
 
 多头只是把 $d_{\mathrm{model}}$ 拆成 $h$ 个头、每个头在 $d_k=d_{\mathrm{model}}/h$ 维上独立算上面这式，再拼回去做一次输出投影。
 
-## 手写代码（形状走一遍）
+## 手写代码
 
 约定：$B$=batch，$T$=seq_len，$C=d_{\mathrm{model}}$，$H$=num_heads，$d_k=C/H$。
 
@@ -105,7 +105,7 @@ class TransformerBlock(nn.Module):
 
 ## 为什么要 `transpose(1, 2)`
 
-线性层吐出来的是 `(B, T, C)`，内存布局是：**每个 token 的 $C$ 维里，前 $d_k$ 是 head 0，接着 $d_k$ 是 head 1……**。所以必须先：
+线性层吐出来的是 `(B, T, C)`，内存布局是：每个 token 的 $C$ 维里，前 $d_k$ 是 head 0，接着 $d_k$ 是 head 1……所以必须先：
 
 ```python
 q.view(B, T, H, d_k)   # 正确：沿最后一维按 head 切开
@@ -121,15 +121,15 @@ $H$ 被挪到 batch 维旁边，后面的 batched matmul 就对 $H$ 个头**并�
 
 两个常见错法：
 
-1. **漏掉 `transpose(1, 2)`，直接 `view(B, T, H, d_k)` 去乘。**  
-   `q @ k.transpose(-2, -1)` 变成 `(B, T, H, d_k) @ (B, T, d_k, H)` → `(B, T, H, H)`。这是在每个 token 上算 **head 与 head 的相似度**，完全不是注意力。
+1. 漏掉 `transpose(1, 2)`，直接 `view(B, T, H, d_k)` 去乘。  
+   `q @ k.transpose(-2, -1)` 变成 `(B, T, H, d_k) @ (B, T, d_k, H)` → `(B, T, H, H)`。这是在每个 token 上算 head 与 head 的相似度，完全不是注意力。
 
-2. **直接 `view(B, H, T, d_k)`，省掉 transpose。**  
-   `view` 按内存顺序切块，会把**不同 token 的特征拼进同一个 head**，head 切分是错的。必须先 `view(B, T, H, d_k)` 再 `transpose(1, 2)`（或等价的 `einops.rearrange(..., 'b t (h d) -> b h t d', h=H)`）。
+2. 直接 `view(B, H, T, d_k)`，省掉 transpose。  
+   `view` 按内存顺序切块，会把不同 token 的特征拼进同一个 head，head 切分是错的。必须先 `view(B, T, H, d_k)` 再 `transpose(1, 2)`（或等价的 `einops.rearrange(..., 'b t (h d) -> b h t d', h=H)`）。
 
 注意代码里还有另一个转置 `k.transpose(-2, -1)`：那是把 `(B, H, T, d_k)` 变成 `(B, H, d_k, T)`，专为 $QK^\top$ 服务，和 `transpose(1, 2)` 不是一回事。乘完 $V$ 之后还要再 `transpose(1, 2)` 把头拼回去。
 
-## 为什么除以 $\sqrt{d_k}$
+## 为什么要除以 √dₖ
 
 假设 $q,k$ 各维近似独立、均值 0、方差 1，则点积 $q\cdot k=\sum_{i=1}^{d_k} q_i k_i$ 的方差约为 $d_k$，标准差约为 $\sqrt{d_k}$。$d_k$ 越大，点积绝对值越大。
 
@@ -139,7 +139,7 @@ $$
 \mathrm{Var}\!\left(\frac{q\cdot k}{\sqrt{d_k}}\right)\approx 1
 $$
 
-所以缩放因子是 **head 维度 $d_k$**，不是 $d_{\mathrm{model}}$。多头之后每个头更窄，$d_k$ 变小，缩放也跟着变。面试若追问「能不能除 $d_k$」：除 $d_k$ 会把分数压得过小，softmax 接近均匀，注意力变钝。
+所以缩放因子是 **head 维度** $d_k$，不是 $d_{\mathrm{model}}$。多头之后每个头更窄，$d_k$ 变小，缩放也跟着变。面试若追问「能不能除 $d_k$」：除 $d_k$ 会把分数压得过小，softmax 接近均匀，注意力变钝。
 
 因果 mask / padding mask 在缩放**之后**、softmax **之前**把非法位置填成 `-inf`（不要填成很大的负数凑合：和缩放、混合精度叠在一起可能 mask 不住）。
 
