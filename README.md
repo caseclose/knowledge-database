@@ -70,7 +70,7 @@ graph LR
     MA --> Attn["attention"]
     Attn --> K29["Multi-Head Attention"]
     MA --> WeLM["welm"]
-    WeLM --> K30["WeLM 参数规模"]
+    WeLM --> K30["WeLM 参数规模 / Image"]
     MA --> DT["diffusion-transformer"]
     DT --> K16["MMDiT 结构"]
     MA --> Diff["diffusion"]
@@ -261,7 +261,7 @@ knowledge-database/
 | `model-architecture/positional-encoding/image-vs-text-positional-encoding.md` | 位置编码：文本 1D RoPE vs 图像 2D/axial RoPE，M-RoPE 统一多模态 t-h-w |
 | `model-architecture/moe/moe-architecture-intro.md` | MoE：路由器 + top-k 专家稀疏激活，负载均衡（无辅助损失偏置）、细粒度 + 共享专家 |
 | `model-architecture/attention/multihead-attention.md` | Multi-Head Attention：手写代码，dropout 两处，`transpose(1,2)` 把头变 batch 维，除以 $\sqrt{d_k}$ 防 softmax 饱和 |
-| `model-architecture/welm/welm-parameter-scales.md` | WeLM：背 80B-A3B / 130B-A4.9B / 617B-A23B，上一代 258B-A22B；V4 激活比约 3.7% |
+| `model-architecture/welm/welm-parameter-scales.md` | WeLM：LLM 背 80B-A3B / 130B-A4.9B / 617B-A23B；Image 1.0 Preview 为 32B-A5.4B |
 | `agent/claude-code/tool-calling-and-mcp.md` | Claude Code：`while(tool_use)` agentic loop，内置工具与 MCP 同管线，Tool Search 控 token |
 | `agent/mcp/model-context-protocol-intro.md` | MCP：host/client/server 的 JSON-RPC 插座，tools/resources/prompts，stdio 与 Streamable HTTP |
 | `model-training/pytorch/eval-vs-train.md` | `eval()` / `train()` 只切 Dropout/BN 模式，不关梯度；推理要配 `no_grad()` |
